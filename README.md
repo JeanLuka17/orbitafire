@@ -54,6 +54,13 @@ Key results:
 - **2005 (88.6k, 95% band 72k–109k) and 2010 (83.2k) were of similar size.** Raw MODIS shows only 21k and 18k for those years, so this is visible only after harmonization.
 - **October 2026 was 1.65× a typical October** ("very high"), even though 2026 overall is normal so far.
 
+**Step 3b – protected areas.** Run `python scripts/04_protected_areas.py`. Every VIIRS hotspot from 2012 to Oct 2026 is tested point-in-polygon against SERNANP's official boundaries of Peru's national protected areas and their buffer zones. The buffer zone is counted as a ring outside the area. The native communities that intersect each unit are also listed. The script writes `results/protected_areas_fire.csv` and `results/protected_areas_monthly.csv`, plus a ranking of the 11 Communal Reserves co-managed by SERNANP and Indigenous organizations (`results/communal_reserves_ranking.csv`).
+
+- **El Sira** (Huánuco, Pasco, Ucayali) has by far the most fire of any Communal Reserve: about 2,400 hotspots a year in its landscape, mostly in the buffer zone, where 213 native communities are found.
+- **Amarakaeri** (Madre de Dios) has almost no fire inside the reserve, but fire in its buffer zone has roughly **tripled**: from about 55 hotspots a year in 2012–2018 to 196 in 2024, its record year (2.8× its usual level). This is the early-warning case.
+
+SERNANP layers are downloaded from SERNANP's public download service (`geoservicios.sernanp.gob.pe`, `sernanp_visor/servicio_descarga`, layers 1, 8 and 39). They are not redistributed in this repository.
+
 | | |
 |---|---|
 | ![](figures/fig1_before_after.png) | ![](figures/fig2_ratio_not_constant.png) |

@@ -5,3 +5,4 @@ __pycache__/
 # FIRMS raw downloads and heavy processed files are not versioned
 data/raw/
 data/processed/*.parquet
+data/external/
