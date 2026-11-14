@@ -1,0 +1,25 @@
+{
+  "last_complete_month": "2026-10",
+  "last_month": {
+    "value": 13219,
+    "typical": 8036,
+    "ratio": 1.65,
+    "z": 2.54,
+    "category": "very high"
+  },
+  "year_to_date": {
+    "year": 2026,
+    "months": "Jan-Oct",
+    "value": 50802,
+    "typical": 59499,
+    "ratio": 0.85,
+    "z": -0.57,
+    "category": "normal"
+  },
+  "peak_months": [
+    "Sep",
+    "Aug"
+  ],
+  "fire_season_share": 0.825,
+  "record_year": 2024
+}

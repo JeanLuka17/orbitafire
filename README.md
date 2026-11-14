@@ -26,6 +26,7 @@ Raw downloads go in `data/raw/{modis,snpp,noaa20,noaa21}/` (not versioned).
 pip install -r requirements.txt
 python scripts/01_prepare_data.py --raw data/raw --out data/processed --res 0.25
 python scripts/02_harmonize.py --processed data/processed --results results   # ~6 min
+python scripts/03_results.py --processed data/processed --results results --figures figures
 python -m pytest -q tests
 ```
 
@@ -39,6 +40,25 @@ python -m pytest -q tests
 4. **Uncertainty.** Reconstructed months and years carry a 95% band. It is computed from the out-of-fold errors, separately for the fire season and the rest of the year.
 
 Outputs are written to `results/`: the Peru monthly and yearly harmonized series, the model comparison tables, yearly errors and `harmonize_report.json`. A cell-level harmonized panel goes to `data/processed/`.
+
+**Step 3 – results.** Run `python scripts/03_results.py`. It works on the harmonized series:
+
+- **Fire calendar.** The typical share of each year's fires that falls in each month. In Peru, 82% of fires happen in Jul–Nov, with the peak in Aug–Sep.
+- **Anomalies.** Every month and year is compared with the same period in the *other* years, using a robust z-score (median/MAD), and placed in a category: very low / normal / high / very high / extreme. Each 0.25° cell's fire season is compared the same way.
+- **Current status.** The latest complete month and the year-to-date, as a "traffic light" for the website.
+
+Key results:
+
+- **2024 is the record year** at 95,270 hotspots, 1.5× a typical year. In September 2024 alone there were 36,394 hotspots, 1.7× a typical September.
+- 81% of active cells were above their usual fire season, so the 2024 anomaly was widespread across the country.
+- **2005 (88.6k, 95% band 72k–109k) and 2010 (83.2k) were of similar size.** Raw MODIS shows only 21k and 18k for those years, so this is visible only after harmonization.
+- **October 2026 was 1.65× a typical October** ("very high"), even though 2026 overall is normal so far.
+
+| | |
+|---|---|
+| ![](figures/fig1_before_after.png) | ![](figures/fig2_ratio_not_constant.png) |
+| ![](figures/fig3_validation.png) | ![](figures/fig5_2024_vs_normal.png) |
+| ![](figures/fig4_fire_calendar.png) | ![](figures/fig6_map_2024.png) |
 
 ## AI assistance
 
