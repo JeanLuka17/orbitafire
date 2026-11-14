@@ -1,0 +1,228 @@
+{
+  "grid_deg": 0.25,
+  "noaa20_calibration": {
+    "k": 1.0081641019487857,
+    "n_days": 2157,
+    "daily_log_ratio_sd": 0.4786132085149966,
+    "k_by_year": {
+      "2018": 1.031,
+      "2019": 0.983,
+      "2020": 0.997,
+      "2021": 1.001,
+      "2022": 1.029,
+      "2023": 1.012,
+      "2024": 0.996,
+      "2025": 1.022,
+      "2026": 1.018
+    }
+  },
+  "snpp_outage_days": [
+    "2021-11-18",
+    "2022-07-27",
+    "2022-07-28",
+    "2022-07-29",
+    "2022-07-30",
+    "2022-07-31",
+    "2022-08-01",
+    "2022-08-02",
+    "2022-08-03",
+    "2022-08-04",
+    "2022-08-05",
+    "2022-08-06",
+    "2022-08-07",
+    "2022-08-08",
+    "2022-08-09",
+    "2022-08-10",
+    "2023-02-28",
+    "2023-07-26",
+    "2023-07-27",
+    "2024-05-30",
+    "2024-05-31",
+    "2024-06-01",
+    "2024-06-02",
+    "2024-06-03",
+    "2024-07-10",
+    "2024-07-11",
+    "2024-07-12",
+    "2024-07-13",
+    "2024-07-14",
+    "2024-07-15",
+    "2024-07-24",
+    "2024-07-25",
+    "2024-07-26",
+    "2024-07-27",
+    "2024-07-28",
+    "2024-09-26",
+    "2024-11-03",
+    "2024-11-04",
+    "2024-11-05",
+    "2025-01-20",
+    "2025-07-07",
+    "2025-11-11",
+    "2026-03-10",
+    "2026-03-12",
+    "2026-04-28",
+    "2026-04-29",
+    "2026-04-30",
+    "2026-06-01",
+    "2026-06-02",
+    "2026-07-11",
+    "2026-07-12",
+    "2026-07-13",
+    "2026-07-14",
+    "2026-07-15",
+    "2026-07-16",
+    "2026-08-03"
+  ],
+  "overlap_months": [
+    "2012-01-01",
+    "2026-10-01"
+  ],
+  "terra_training_months": [
+    "2012-01-01",
+    "2019-12-01"
+  ],
+  "chosen_model": "poisson_glm",
+  "cv_modis_to_viirs": {
+    "ratio_global": {
+      "monthly_mae": 1016.8019,
+      "monthly_bias_pct": 0.1482,
+      "monthly_r": 0.9784,
+      "monthly_mape_pct": 23.3113,
+      "yearly_mape_pct": 9.3128,
+      "yearly_max_abs_err_pct": 31.1437,
+      "cell_year_spearman": 0.8606,
+      "cell_year_mae": 14.3095
+    },
+    "ratio_by_month": {
+      "monthly_mae": 760.3348,
+      "monthly_bias_pct": 0.3177,
+      "monthly_r": 0.9775,
+      "monthly_mape_pct": 13.9751,
+      "yearly_mape_pct": 8.2014,
+      "yearly_max_abs_err_pct": 28.807,
+      "cell_year_spearman": 0.8605,
+      "cell_year_mae": 14.0165
+    },
+    "quantile_map": {
+      "monthly_mae": 1172.2812,
+      "monthly_bias_pct": 16.2421,
+      "monthly_r": 0.9825,
+      "monthly_mape_pct": 40.0355,
+      "yearly_mape_pct": 17.22,
+      "yearly_max_abs_err_pct": 29.6451,
+      "cell_year_spearman": 0.8062,
+      "cell_year_mae": 16.2062
+    },
+    "poisson_glm": {
+      "monthly_mae": 754.7499,
+      "monthly_bias_pct": -0.3252,
+      "monthly_r": 0.9806,
+      "monthly_mape_pct": 18.4096,
+      "yearly_mape_pct": 8.5232,
+      "yearly_max_abs_err_pct": 17.6986,
+      "cell_year_spearman": 0.8925,
+      "cell_year_mae": 13.9662
+    },
+    "negbin_glm": {
+      "monthly_mae": 859.8422,
+      "monthly_bias_pct": 2.9089,
+      "monthly_r": 0.9811,
+      "monthly_mape_pct": 26.3505,
+      "yearly_mape_pct": 9.5307,
+      "yearly_max_abs_err_pct": 18.8792,
+      "cell_year_spearman": 0.8981,
+      "cell_year_mae": 14.6641
+    }
+  },
+  "cv_terra_to_viirs": {
+    "ratio_global": {
+      "monthly_mae": 1189.2107,
+      "monthly_bias_pct": 0.728,
+      "monthly_r": 0.9524,
+      "monthly_mape_pct": 26.6684,
+      "yearly_mape_pct": 11.4194,
+      "yearly_max_abs_err_pct": 32.9096,
+      "cell_year_spearman": 0.6246,
+      "cell_year_mae": 33.795
+    },
+    "ratio_by_month": {
+      "monthly_mae": 1081.5963,
+      "monthly_bias_pct": 1.8818,
+      "monthly_r": 0.9667,
+      "monthly_mape_pct": 22.1435,
+      "yearly_mape_pct": 11.1769,
+      "yearly_max_abs_err_pct": 27.5091,
+      "cell_year_spearman": 0.6256,
+      "cell_year_mae": 33.6274
+    },
+    "quantile_map": {
+      "monthly_mae": 2159.5547,
+      "monthly_bias_pct": 36.2434,
+      "monthly_r": 0.9433,
+      "monthly_mape_pct": 75.5049,
+      "yearly_mape_pct": 36.2196,
+      "yearly_max_abs_err_pct": 45.1384,
+      "cell_year_spearman": 0.4908,
+      "cell_year_mae": 38.0369
+    },
+    "poisson_glm": {
+      "monthly_mae": 882.1473,
+      "monthly_bias_pct": -0.2083,
+      "monthly_r": 0.9787,
+      "monthly_mape_pct": 25.4505,
+      "yearly_mape_pct": 6.4181,
+      "yearly_max_abs_err_pct": 15.6639,
+      "cell_year_spearman": 0.7328,
+      "cell_year_mae": 31.5166
+    },
+    "negbin_glm": {
+      "monthly_mae": 93459.3883,
+      "monthly_bias_pct": 1738.8939,
+      "monthly_r": 0.5783,
+      "monthly_mape_pct": 2205.332,
+      "yearly_mape_pct": 1668.1685,
+      "yearly_max_abs_err_pct": 5490.8199,
+      "cell_year_spearman": 0.7337,
+      "cell_year_mae": 666.4543
+    }
+  },
+  "relative_sigma_monthly": {
+    "modis_model": {
+      "fire_season": 0.189434063319845,
+      "off_season": 0.24163188523380247,
+      "bias_log": 0.04418416639372617
+    },
+    "terra_model": {
+      "fire_season": 0.27867622641667245,
+      "off_season": 0.3315833543021493,
+      "bias_log": 0.04739066734278275
+    }
+  },
+  "relative_sigma_yearly": {
+    "modis_model": 0.10350463747913055,
+    "terra_model": 0.08775878050888694
+  },
+  "viirs_over_modis_by_year": {
+    "2012": 4.372,
+    "2013": 5.23,
+    "2014": 5.425,
+    "2015": 4.735,
+    "2016": 4.772,
+    "2017": 5.103,
+    "2018": 4.692,
+    "2019": 4.341,
+    "2020": 5.535,
+    "2021": 5.043,
+    "2022": 4.821,
+    "2023": 5.054,
+    "2024": 4.892,
+    "2025": 6.442,
+    "2026": 7.202
+  },
+  "notes": [
+    "Nov 2026 is a partial month (data to mid-November).",
+    "Nov 2000 has an unusual Terra cluster (1,093 detections, 2-14 Nov, northern Peru) right at the start of the record; kept but flagged for review."
+  ],
+  "runtime_s": 361.2
+}

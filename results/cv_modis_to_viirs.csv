@@ -1,0 +1,6 @@
+model,monthly_mae,monthly_bias_pct,monthly_r,monthly_mape_pct,yearly_mape_pct,yearly_max_abs_err_pct,cell_year_spearman,cell_year_mae
+ratio_global,1016.8019,0.1482,0.9784,23.3113,9.3128,31.1437,0.8606,14.3095
+ratio_by_month,760.3348,0.3177,0.9775,13.9751,8.2014,28.807,0.8605,14.0165
+quantile_map,1172.2812,16.2421,0.9825,40.0355,17.22,29.6451,0.8062,16.2062
+poisson_glm,754.7499,-0.3252,0.9806,18.4096,8.5232,17.6986,0.8925,13.9662
+negbin_glm,859.8422,2.9089,0.9811,26.3505,9.5307,18.8792,0.8981,14.6641
