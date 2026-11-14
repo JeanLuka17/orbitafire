@@ -275,7 +275,7 @@
   }
 
   // ---------- boot ----------
-  const files = { status: "status.json", peru: "peru.json", cells: "cells.json", areas: "areas.geojson", series: "areas_series.json", comm: "communities.json", regions: "regions.geojson", ranking: "ranking.json" };
+  const files = { status: "status.json", peru: "peru.json", cells: "cells.json", areas: "areas.json", series: "areas_series.json", comm: "communities.json", regions: "regions.json", ranking: "ranking.json" };
   Promise.all(Object.entries(files).map(([k, f]) => fetch(`data/${f}`).then(r => r.json()).then(j => D[k] = j))).then(() => {
     D.areaById = {}; D.areas.features.forEach(f => { f.bb = bbox(f.geometry); D.areaById[f.properties.id] = f; });
     D.cellIdx = {}; D.cells.cells.forEach(c => D.cellIdx[`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`] = c);

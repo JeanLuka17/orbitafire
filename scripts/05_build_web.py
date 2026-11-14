@@ -10,10 +10,10 @@ Outputs (docs/data/):
     status.json        national "traffic light" + headline numbers
     peru.json          yearly/monthly harmonized series, calendar, validation
     cells.json         0.25 deg cells: yearly harmonized hotspots + 2024 anomaly
-    areas.geojson      simplified protected areas and buffer rings + metrics
+    areas.json      simplified protected areas and buffer rings + metrics
     areas_series.json  yearly / monthly VIIRS hotspots per protected-area unit
     communities.json   native community locations (centroids), name + people
-    regions.geojson    simplified department boundaries
+    regions.json    simplified department boundaries
     ranking.json       the 11 Communal Reserves
 
 Developed by the OrbitaFire team with AI assistance (Claude, Anthropic).
@@ -120,7 +120,7 @@ def main():
                  "ytd": clean(r.ytd_ratio_2026), "last": clean(r.last_month_ratio), "ncomm": clean(r.n_communities, 0),
                  "peoples": r.peoples if isinstance(r.peoples, str) else ""}
         feats.append({"type": "Feature", "properties": props, "geometry": rgeom(u.geometry, 0.004)})
-    dump({"type": "FeatureCollection", "features": feats}, out / "areas.geojson")
+    dump({"type": "FeatureCollection", "features": feats}, out / "areas.json")
 
     pam["year"] = pam.month.str[:4].astype(int)
     series = {}
@@ -169,7 +169,7 @@ def main():
     reg = json.loads((Path(a.boundaries) / "geoBoundaries-PER-ADM1_simplified.geojson").read_text())
     rf = [{"type": "Feature", "properties": {"name": f["properties"]["shapeName"]},
            "geometry": rgeom(shape(f["geometry"]), 0.01)} for f in reg["features"]]
-    dump({"type": "FeatureCollection", "features": rf}, out / "regions.geojson")
+    dump({"type": "FeatureCollection", "features": rf}, out / "regions.json")
 
     # ---------------- ranking + status
     rk = []
