@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrbitaFire 3D — Fire in Peru, 2001–2026</title>
+<style>/*MAPLIBRE_CSS*/</style>
+<style>
+  /* OrbitaFire 3D view. Developed by the OrbitaFire team with AI assistance (Claude, Anthropic). */
+  html, body { margin: 0; height: 100%; background: #0b1520; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; color: #f0efec; }
+  #map { position: absolute; inset: 0; }
+  .ui { position: absolute; z-index: 2; background: rgba(13,17,23,.78); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; }
+  .title { top: 14px; left: 14px; padding: 12px 16px; max-width: 360px; }
+  .title h1 { font-size: 18px; margin: 0 0 2px; }
+  .title p { margin: 0; color: #c3c2b7; font-size: 12.5px; }
+  .ctrl { bottom: 22px; left: 50%; transform: translateX(-50%); padding: 12px 16px; display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 28px)); }
+  .ctrl button { background: #f0efec; color: #0b0b0b; border: 0; border-radius: 8px; padding: 7px 12px; font: 600 13px system-ui, sans-serif; cursor: pointer; }
+  .ctrl input[type=range] { flex: 1; accent-color: #eb6834; }
+  .year { font-size: 30px; font-weight: 700; min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { font-size: 11.5px; color: #c3c2b7; min-width: 150px; }
+  .fly { top: 14px; right: 14px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .fly button { background: transparent; color: #f0efec; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 6px 10px; font: 13px system-ui, sans-serif; cursor: pointer; text-align: left; }
+  .fly button:hover { background: rgba(255,255,255,.1); }
+  .legend { bottom: 104px; left: 14px; padding: 10px 14px; font-size: 12px; }
+  .legend .ramp { width: 180px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #fde68a, #fbbf24, #f97316, #dc2626, #7f1d1d); margin: 6px 0 3px; }
+  .legend .row { display: flex; justify-content: space-between; color: #c3c2b7; }
+  .legend .sw { display: inline-block; width: 14px; height: 3px; background: #4ade80; vertical-align: middle; margin-right: 6px; }
+  .credits { bottom: 4px; right: 8px; font-size: 10.5px; color: #c3c2b7; background: none; border: 0; backdrop-filter: none; text-shadow: 0 1px 2px #000; }
+  .credits a { color: #c3c2b7; }
+  .maplibregl-popup-content { background: #0d1117; color: #f0efec; border-radius: 8px; font-size: 12.5px; padding: 8px 10px; }
+  .maplibregl-popup-tip { border-top-color: #0d1117 !important; border-bottom-color: #0d1117 !important; }
+  .maplibregl-ctrl-attrib { display: none; }
+  @media (max-width: 700px) { .title { max-width: 60%; } .fly { top: auto; bottom: 104px; right: 14px; } .legend { display: none; } }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="ui title"><h1>OrbitaFire · Peru in 3D</h1><p>Each column is a 25 km cell; its height and color show how many fire hotspots it had that year (VIIRS-equivalent, harmonized from NASA MODIS + VIIRS). Drag to rotate, scroll to zoom.</p></div>
+<div class="ui fly">
+  <button data-fly="peru">Peru</button>
+  <button data-fly="amk">Amarakaeri (Madre de Dios)</button>
+  <button data-fly="sira">El Sira (Ucayali)</button>
+  <button data-fly="andes">Andes & Amazon</button>
+</div>
+<div class="ui legend"><b>Hotspots per cell in the year</b><div class="ramp"></div><div class="row"><span>1</span><span>100</span><span>1,000+</span></div><div style="margin-top:6px"><span class="sw"></span>Protected areas (SERNANP)</div></div>
+<div class="ui ctrl">
+  <button id="play">▶ Play</button>
+  <input id="slider" type="range" min="2001" max="2026" step="1" value="2024" aria-label="Year">
+  <div class="year" id="year">2024</div>
+  <div class="tag" id="tag">VIIRS observed</div>
+</div>
+<div class="ui credits">Fire data: NASA FIRMS (MODIS C6.1, VIIRS C2) · Imagery: NASA GIBS Blue Marble · Terrain: AWS Terrain Tiles (Mapzen; SRTM/NASA and others) · Protected areas: SERNANP · Boundaries: geoBoundaries · <a href="https://github.com/JeanLuka17/orbitafire">OrbitaFire</a></div>
+<script>/*MAPLIBRE_JS*/</script>
+<script>
+const DATA = /*DATA*/;
+(() => {
+  "use strict";
+  const YEARS = DATA.years, RES = DATA.res, PAD = RES * 0.14;
+  const cells = { type: "FeatureCollection", features: DATA.cells.map((c, i) => ({
+    type: "Feature", id: i, properties: { i },
+    geometry: { type: "Polygon", coordinates: [[[c.lo - RES / 2 + PAD, c.la - RES / 2 + PAD], [c.lo + RES / 2 - PAD, c.la - RES / 2 + PAD], [c.lo + RES / 2 - PAD, c.la + RES / 2 - PAD], [c.lo - RES / 2 + PAD, c.la + RES / 2 - PAD], [c.lo - RES / 2 + PAD, c.la - RES / 2 + PAD]]] } })) };
+  const setYear = y => {
+    const k = YEARS.indexOf(y);
+    cells.features.forEach(f => { f.properties.n = DATA.cells[f.properties.i].y[k]; });
+    if (map.getSource("cells")) map.getSource("cells").setData(cells);
+    document.getElementById("year").textContent = y;
+    document.getElementById("tag").textContent = y < 2012 ? "Reconstructed from MODIS (harmonized)" : y === 2026 ? "VIIRS observed · Jan–Oct" : "VIIRS observed";
+  };
+  const style = {
+    version: 8,
+    sources: {
+      sat: { type: "raster", tileSize: 256, maxzoom: 8, attribution: "NASA GIBS",
+        tiles: ["https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg"] },
+      dem: { type: "raster-dem", tileSize: 256, maxzoom: 11, encoding: "terrarium",
+        tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"] },
+      demShade: { type: "raster-dem", tileSize: 256, maxzoom: 11, encoding: "terrarium",
+        tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"] },
+      regions: { type: "geojson", data: DATA.regions },
+      areas: { type: "geojson", data: DATA.areas },
+      cells: { type: "geojson", data: cells },
+    },
+    layers: [
+      { id: "bg", type: "background", paint: { "background-color": "#0b1520" } },
+      { id: "land", type: "fill", source: "regions", paint: { "fill-color": "#1f2a24", "fill-opacity": 1 } },
+      { id: "sat", type: "raster", source: "sat", paint: { "raster-saturation": -0.15, "raster-contrast": 0.05 } },
+      { id: "shade", type: "hillshade", source: "demShade", paint: { "hillshade-exaggeration": 0.35, "hillshade-shadow-color": "#0b1520" } },
+      { id: "regions", type: "line", source: "regions", paint: { "line-color": "#ffffff", "line-opacity": 0.35, "line-width": 0.8 } },
+      { id: "areas-fill", type: "fill", source: "areas", paint: { "fill-color": "#4ade80", "fill-opacity": 0.10 } },
+      { id: "areas-line", type: "line", source: "areas", paint: { "line-color": "#4ade80", "line-width": ["case", ["==", ["get", "cat"], "Reserva Comunal"], 2, 1], "line-opacity": 0.9 } },
+      { id: "cells", type: "fill-extrusion", source: "cells", filter: [">", ["coalesce", ["get", "n"], 0], 0],
+        paint: {
+          "fill-extrusion-color": ["interpolate", ["linear"], ["log10", ["max", 1, ["get", "n"]]], 0, "#fde68a", 1, "#fbbf24", 2, "#f97316", 2.6, "#dc2626", 3.2, "#7f1d1d"],
+          "fill-extrusion-height": ["*", ["sqrt", ["get", "n"]], 1500],
+          "fill-extrusion-opacity": 0.88, "fill-extrusion-vertical-gradient": true } },
+      { id: "labels", type: "symbol", source: "areas", filter: ["==", ["get", "cat"], "Reserva Comunal"],
+        layout: { "text-field": ["concat", "RC ", ["get", "name"]], "text-size": 12, "text-font": [] }, paint: { "text-color": "#bbf7d0", "text-halo-color": "#000", "text-halo-width": 1.2 } },
+    ],
+    sky: { "sky-color": "#0b1d33", "horizon-color": "#3b5a7a", "fog-color": "#0b1520", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 },
+  };
+  // the glyph-free symbol layer is removed (no font server): labels go in popups instead
+  style.layers = style.layers.filter(l => l.id !== "labels");
+  const map = new maplibregl.Map({ container: "map", style, center: [-74.2, -9.8], zoom: 4.85, pitch: 62, bearing: -18, maxPitch: 80, antialias: true, attributionControl: false });
+  window._map = map;
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
+  map.on("load", () => {
+    try { map.setTerrain({ source: "dem", exaggeration: 1.6 }); } catch (e) { console.warn("terrain off", e); }
+    setYear(2024);
+  });
+  map.on("error", e => { /* tiles unreachable: keep the 3D columns on the plain background */ if (e && e.sourceId) { const id = e.sourceId; if (id === "dem") { try { map.setTerrain(null); } catch (_) {} } } });
+  const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
+  map.on("mousemove", "cells", e => {
+    map.getCanvas().style.cursor = "pointer";
+    const f = e.features[0], c = DATA.cells[f.properties.i], y = +document.getElementById("slider").value;
+    const typical = [...c.y.slice(YEARS.indexOf(2012), YEARS.indexOf(2025) + 1)].sort((a, b) => a - b)[7];
+    popup.setLngLat(e.lngLat).setHTML(`<b>${y}: ${Math.round(f.properties.n).toLocaleString()} hotspots</b><br>Typical year (2012–2025 median): ${Math.round(typical).toLocaleString()}<br><span style="color:#c3c2b7">${c.la.toFixed(2)}°, ${c.lo.toFixed(2)}°</span>`).addTo(map);
+  });
+  map.on("mouseleave", "cells", () => { map.getCanvas().style.cursor = ""; popup.remove(); });
+  map.on("click", "areas-fill", e => {
+    const p = e.features[0].properties;
+    new maplibregl.Popup({ offset: 8 }).setLngLat(e.lngLat).setHTML(`<b>${p.cat} ${p.name}</b><br>VIIRS hotspots/yr inside: ${p.mean ?? "–"}<br>2024 vs typical: ${p.r2024 ?? "–"}×`).addTo(map);
+  });
+  const slider = document.getElementById("slider");
+  slider.oninput = () => setYear(+slider.value);
+  let timer = null;
+  document.getElementById("play").onclick = ev => {
+    if (timer) { clearInterval(timer); timer = null; ev.target.textContent = "▶ Play"; return; }
+    ev.target.textContent = "❚❚ Pause";
+    if (+slider.value >= 2026) slider.value = 2001;
+    timer = setInterval(() => { let y = +slider.value + 1; if (y > 2026) { clearInterval(timer); timer = null; ev.target.textContent = "▶ Play"; return; } slider.value = y; setYear(y); }, 900);
+  };
+  const VIEWS = {
+    peru: { center: [-74.2, -9.8], zoom: 4.85, pitch: 62, bearing: -18 },
+    amk: { center: [-70.9, -12.75], zoom: 7.6, pitch: 66, bearing: -30 },
+    sira: { center: [-74.6, -9.9], zoom: 7.3, pitch: 66, bearing: 25 },
+    andes: { center: [-73.2, -13.6], zoom: 6.1, pitch: 72, bearing: 60 },
+  };
+  document.querySelectorAll("[data-fly]").forEach(b => b.onclick = () => map.flyTo({ ...VIEWS[b.dataset.fly], duration: 3500, essential: true }));
+})();
+</script>
+</body>
+</html>

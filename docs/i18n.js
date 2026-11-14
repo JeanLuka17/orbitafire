@@ -1,7 +1,7 @@
 // OrbitaFire UI strings (EN / ES). Developed with AI assistance (Claude, Anthropic).
 const I18N = {
   en: {
-    nav_map: "Map", nav_reserves: "Communal Reserves", nav_method: "Method", nav_about: "About",
+    nav_map: "Map", nav_reserves: "Communal Reserves", nav_method: "Method", nav_about: "About", nav_3d: "3D view",
     eyebrow: "NASA Space Apps Challenge 2026 · Harmonization of MODIS and VIIRS Hot Spots",
     h1: "25 years of fire in Peru, on one consistent scale",
     lead: "NASA's two fire sensors count fires differently: VIIRS sees <b>4–8×</b> more hotspots than MODIS. We harmonized both into a single, validated 2000–2026 record and use it to warn the people who protect the Amazon's <b>Communal Reserves</b> when a fire season is out of the ordinary.",
@@ -65,7 +65,7 @@ const I18N = {
     months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
   },
   es: {
-    nav_map: "Mapa", nav_reserves: "Reservas Comunales", nav_method: "Método", nav_about: "Equipo",
+    nav_map: "Mapa", nav_reserves: "Reservas Comunales", nav_method: "Método", nav_about: "Equipo", nav_3d: "Vista 3D",
     eyebrow: "NASA Space Apps Challenge 2026 · Armonización de focos de calor MODIS y VIIRS",
     h1: "25 años de incendios en el Perú, en una sola escala",
     lead: "Los dos sensores de incendios de la NASA cuentan distinto: VIIRS ve <b>4 a 8 veces</b> más focos que MODIS. Armonizamos ambos en un solo registro validado 2000–2026 y lo usamos para alertar a quienes protegen las <b>Reservas Comunales</b> de la Amazonía cuando una temporada de fuego sale de lo normal.",

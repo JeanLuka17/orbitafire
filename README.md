@@ -74,7 +74,7 @@ SERNANP layers are downloaded from SERNANP's public download service (`geoservic
 - the Communal Reserves ranking
 - the method and validation charts
 
-To preview it: `cd docs && python -m http.server`. To publish it: enable GitHub Pages from `main` / `docs`.
+`docs/3d.html` is a self-contained 3D view built by `python scripts/06_build_3d.py` with MapLibre GL JS (BSD-3). It shows fire columns per cell and year over NASA GIBS Blue Marble imagery and AWS Terrain Tiles relief, with a year slider. To preview the site: `cd docs && python -m http.server`. To publish it: enable GitHub Pages from `main` / `docs`.
 
 ## AI assistance
 
