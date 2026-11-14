@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrbitaFire — 25 years of fire in Peru on one consistent scale</title>
+<meta name="description" content="OrbitaFire harmonizes NASA MODIS and VIIRS active-fire data into one consistent 2000–2026 record for Peru and turns it into fire alerts for Communal Reserves co-managed with Indigenous peoples.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%23eb6834%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- OrbitaFire website. Developed by the OrbitaFire team with AI assistance (Claude, Anthropic). See README > "AI assistance". -->
+<header class="top">
+  <div class="wrap top-row">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>OrbitaFire</div>
+    <nav>
+      <a href="#map" data-i18n="nav_map">Map</a>
+      <a href="#reserves" data-i18n="nav_reserves">Communal Reserves</a>
+      <a href="#method" data-i18n="nav_method">Method</a>
+      <a href="#about" data-i18n="nav_about">About</a>
+      <button id="lang" class="lang" aria-label="Cambiar idioma / Change language">ES</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero wrap">
+  <p class="eyebrow" data-i18n="eyebrow">NASA Space Apps Challenge 2026 · Harmonization of MODIS and VIIRS Hot Spots</p>
+  <h1 data-i18n="h1">25 years of fire in Peru, on one consistent scale</h1>
+  <p class="lead" data-i18n-html="lead">NASA's two fire sensors count fires differently: VIIRS sees <b>4–8×</b> more hotspots than MODIS. We harmonized both into a single, validated 2000–2026 record and use it to warn the people who protect the Amazon's <b>Communal Reserves</b> when a fire season is out of the ordinary.</p>
+</section>
+
+<section class="wrap status" aria-labelledby="status-h">
+  <h2 id="status-h" class="sr" data-i18n="status_h">Current fire status</h2>
+  <div class="cards" id="status-cards"></div>
+  <p class="note" id="status-note"></p>
+</section>
+
+<section id="map" class="wrap">
+  <h2 data-i18n="map_h">Explore the map</h2>
+  <p class="sub" data-i18n="map_sub">Click anywhere to see its fire history, the protected area or buffer zone it belongs to, and the native communities nearby.</p>
+  <div class="map-ui">
+    <div class="map-controls" role="group" aria-label="Map layers">
+      <span class="ctl-label" data-i18n="color_by">Color cells by</span>
+      <div class="seg" id="mode">
+        <button data-mode="anom" class="on" data-i18n="mode_anom">2024 vs typical season</button>
+        <button data-mode="dens" data-i18n="mode_dens">Average fire per year</button>
+      </div>
+      <label><input type="checkbox" id="lyr-areas" checked> <span data-i18n="lyr_areas">Protected areas</span></label>
+      <label><input type="checkbox" id="lyr-buffers" checked> <span data-i18n="lyr_buffers">Buffer zones</span></label>
+      <label><input type="checkbox" id="lyr-comm"> <span data-i18n="lyr_comm">Native communities</span></label>
+      <label><input type="checkbox" id="lyr-base" checked> <span data-i18n="lyr_base">Basemap</span></label>
+    </div>
+    <div class="map-grid">
+      <div id="leaflet" aria-label="Map of Peru"></div>
+      <aside id="panel" class="panel" aria-live="polite"></aside>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</section>
+
+<section id="reserves" class="wrap">
+  <h2 data-i18n="res_h">Peru's 11 Communal Reserves</h2>
+  <p class="sub" data-i18n-html="res_sub">Communal Reserves are protected areas <b>co-managed</b> by SERNANP and the Indigenous organizations of the native communities around them. VIIRS hotspots (2012–Oct 2026) inside each reserve and its buffer zone. Click a row to see it on the map.</p>
+  <div class="spotlight" id="spotlight"></div>
+  <div class="table-wrap"><table id="rank" class="rank"></table></div>
+</section>
+
+<section id="method" class="wrap">
+  <h2 data-i18n="method_h">Why harmonize, and how</h2>
+  <div class="two">
+    <figure class="chart-card">
+      <figcaption><b data-i18n="c1_t">Before and after harmonization</b><span data-i18n="c1_s">Annual hotspots in Peru. The shaded band is the 95% uncertainty of the reconstructed years.</span></figcaption>
+      <div id="chart-years" class="chart"></div>
+    </figure>
+    <figure class="chart-card">
+      <figcaption><b data-i18n="c2_t">The VIIRS/MODIS ratio is not constant</b><span data-i18n="c2_s">Each dot is a month (2012–2026). In quiet months VIIRS sees far more small fires than MODIS.</span></figcaption>
+      <div id="chart-ratio" class="chart"></div>
+    </figure>
+    <figure class="chart-card">
+      <figcaption><b data-i18n="c3_t">Validated year by year</b><span data-i18n="c3_s">Error in each year's total when that year is hidden from the model.</span></figcaption>
+      <div id="chart-cv" class="chart"></div>
+    </figure>
+    <figure class="chart-card">
+      <figcaption><b data-i18n="c4_t">Peru's fire calendar</b><span data-i18n="c4_s">Typical share of the year's fires in each month.</span></figcaption>
+      <div id="chart-cal" class="chart"></div>
+    </figure>
+  </div>
+  <ol class="steps">
+    <li data-i18n-html="m1"><b>Clean & grid.</b> NASA FIRMS hotspots from MODIS (Terra, Aqua) and VIIRS (S-NPP, NOAA-20, NOAA-21) over Peru, 2000–2026: confident detections only, vegetation fires only, aggregated to a common 0.25° × month grid.</li>
+    <li data-i18n-html="m2"><b>One VIIRS reference.</b> S-NPP is the reference; on days S-NPP was not observing and after it was switched off (1 Nov 2026), NOAA-20 fills in. The two agree within 1%.</li>
+    <li data-i18n-html="m3"><b>Learn MODIS → VIIRS.</b> A Poisson GLM learns, cell by cell, how many hotspots VIIRS sees for a given MODIS count, month and local fire regime, in the 2012–2026 overlap. Five models were compared with leave-one-year-out validation.</li>
+    <li data-i18n-html="m4"><b>Reconstruct & alert.</b> 2000–2011 are expressed as VIIRS-equivalent with a 95% band. Every month, year, cell and protected area is compared with its own history (robust z-score) to flag anomalous fire seasons.</li>
+  </ol>
+</section>
+
+<section id="about" class="wrap about">
+  <div class="two">
+    <div>
+      <h2 data-i18n="team_h">Team OrbitaFire · Lima, Peru</h2>
+      <ul class="team">
+        <li><b>Jean Luka Terrazo</b><span data-i18n="role1">Technical & data lead</span></li>
+        <li><b>Josué</b><span data-i18n="role2">Interactive map & local context</span></li>
+        <li><b>Alessandro</b><span data-i18n="role3">Communication & delivery</span></li>
+      </ul>
+      <h3 data-i18n="ai_h">Use of AI</h3>
+      <p class="small" data-i18n="ai_p">Claude (Anthropic) assisted the team in writing and reviewing code, designing the validation and drafting documentation. The idea, decisions and review are the team's. Files written with AI assistance carry a note in their header.</p>
+    </div>
+    <div>
+      <h3 data-i18n="data_h">Data & credits</h3>
+      <ul class="credits small">
+        <li data-i18n-html="cr1">We acknowledge the use of data and imagery from <b>NASA's Fire Information for Resource Management System (FIRMS)</b> (https://earthdata.nasa.gov/firms), part of NASA's Earth Science Data and Information System (ESDIS): MODIS Collection 6.1 and VIIRS 375 m Collection 2 active fire products.</li>
+        <li data-i18n-html="cr2">Protected areas, buffer zones and native communities: <b>SERNANP</b> (MINAM, Peru), public download service. Simplified for display.</li>
+        <li data-i18n-html="cr3">Department boundaries: <b>geoBoundaries</b> (public domain). Basemap: © <b>OpenStreetMap</b> contributors. Map library: Leaflet (BSD-2).</li>
+        <li data-i18n-html="cr4">Algorithms: Giglio et al. 2016, doi:10.1016/j.rse.2016.02.054 (MODIS C6); Schroeder et al. 2014, doi:10.1016/j.rse.2013.12.008 (VIIRS 375 m).</li>
+        <li data-i18n-html="cr5">Code: <a href="https://github.com/JeanLuka17/orbitafire">github.com/JeanLuka17/orbitafire</a> · MIT License. Not endorsed by NASA.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="wrap foot small" data-i18n="foot">Hotspot counts measure detected active fire, not burned area. Reconstructed years (2000–2011) carry wider uncertainty. Data through 12 Nov 2026.</footer>
+
+<div id="tip" class="tip" role="tooltip" hidden></div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

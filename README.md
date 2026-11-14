@@ -59,13 +59,22 @@ Key results:
 - **El Sira** (Huánuco, Pasco, Ucayali) has by far the most fire of any Communal Reserve: about 2,400 hotspots a year in its landscape, mostly in the buffer zone, where 213 native communities are found.
 - **Amarakaeri** (Madre de Dios) has almost no fire inside the reserve, but fire in its buffer zone has roughly **tripled**: from about 55 hotspots a year in 2012–2018 to 196 in 2024, its record year (2.8× its usual level). This is the early-warning case.
 
-SERNANP layers are downloaded from SERNANP's public download service (`geoservicios.sernanp.gob.pe`, `sernanp_visor/servicio_descarga`, layers 1, 8 and 39). They are not redistributed in this repository.
+SERNANP layers are downloaded from SERNANP's public download service (`geoservicios.sernanp.gob.pe`, `sernanp_visor/servicio_descarga`, layers 1, 8 and 39). Raw layers are not stored in this repository. The website uses simplified outlines derived from them, credited to SERNANP.
 
 | | |
 |---|---|
 | ![](figures/fig1_before_after.png) | ![](figures/fig2_ratio_not_constant.png) |
 | ![](figures/fig3_validation.png) | ![](figures/fig5_2024_vs_normal.png) |
 | ![](figures/fig4_fire_calendar.png) | ![](figures/fig6_map_2024.png) |
+
+**Step 4 – website.** `python scripts/05_build_web.py` writes compact data to `docs/data/`. `docs/` is a static site (Leaflet + plain JavaScript, no build step) with an EN/ES toggle. It has these parts:
+
+- a national fire "traffic light"
+- an interactive map: click any place to see its harmonized fire history, the protected area or buffer zone it falls in, and the native communities nearby
+- the Communal Reserves ranking
+- the method and validation charts
+
+To preview it: `cd docs && python -m http.server`. To publish it: enable GitHub Pages from `main` / `docs`.
 
 ## AI assistance
 
