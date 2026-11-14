@@ -1,0 +1,20 @@
+{
+  "input": 2438470,
+  "dropped_low_confidence": 149945,
+  "dropped_nonvegetation_archive": 55339,
+  "static_cells": 135,
+  "dropped_static_nrt": 1167,
+  "output": 2232019,
+  "resolution_deg": 0.25,
+  "cells": 1750,
+  "months": 313,
+  "first_month": "2000-11-01",
+  "last_month": "2026-11-01",
+  "last_date_per_satellite": {
+    "AQUA": "2026-11-11",
+    "NOAA20": "2026-11-12",
+    "NOAA21": "2026-11-12",
+    "SNPP": "2026-11-01",
+    "TERRA": "2026-11-12"
+  }
+}
