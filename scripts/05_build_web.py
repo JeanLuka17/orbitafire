@@ -33,6 +33,7 @@ from shapely.geometry import box, mapping, shape
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from orbitafire import areas as A  # noqa: E402
+from orbitafire.observatory import export as export_observatory  # noqa: E402
 
 RES = 0.25
 
@@ -64,7 +65,12 @@ def main():
     ap.add_argument("--sernanp", default="data/external/sernanp")
     ap.add_argument("--boundaries", default="data/external/geoboundaries")
     ap.add_argument("--out", default="docs/data")
+    ap.add_argument("--observatory-only", action="store_true",
+                    help="Export monthly observatory data from existing CSV/Parquet and display geometries")
     a = ap.parse_args()
+    if a.observatory_only:
+        export_observatory(a.processed, a.results, a.out)
+        return
     res, out, sern = Path(a.results), Path(a.out), Path(a.sernanp)
     out.mkdir(parents=True, exist_ok=True)
 
@@ -192,6 +198,7 @@ def main():
         "data_through": "2026-11-12",
     })
     dump(status, out / "status.json")
+    export_observatory(a.processed, a.results, a.out)
 
 
 if __name__ == "__main__":

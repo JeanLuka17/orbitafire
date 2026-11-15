@@ -189,19 +189,19 @@
   },
   "relative_sigma_monthly": {
     "modis_model": {
-      "fire_season": 0.189434063319845,
-      "off_season": 0.24163188523380247,
-      "bias_log": 0.04418416639372617
+      "fire_season": 0.1894340633198567,
+      "off_season": 0.24163188523380497,
+      "bias_log": 0.04418416639374857
     },
     "terra_model": {
-      "fire_season": 0.27867622641667245,
-      "off_season": 0.3315833543021493,
-      "bias_log": 0.04739066734278275
+      "fire_season": 0.27867622641667367,
+      "off_season": 0.331583354302131,
+      "bias_log": 0.047390667342777505
     }
   },
   "relative_sigma_yearly": {
-    "modis_model": 0.10350463747913055,
-    "terra_model": 0.08775878050888694
+    "modis_model": 0.10350463747915091,
+    "terra_model": 0.08775878050889112
   },
   "viirs_over_modis_by_year": {
     "2012": 4.372,
@@ -224,5 +224,5 @@
     "Nov 2026 is a partial month (data to mid-November).",
     "Nov 2000 has an unusual Terra cluster (1,093 detections, 2-14 Nov, northern Peru) right at the start of the record; kept but flagged for review."
   ],
-  "runtime_s": 361.2
+  "runtime_s": 304.2
 }

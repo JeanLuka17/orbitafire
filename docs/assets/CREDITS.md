@@ -1,0 +1,2 @@
+Aerial view of a forest fire — USDA Forest Service photo by Henny Jungemann (2020). Public domain, US federal government work. Source and licensing: https://commons.wikimedia.org/wiki/File:Aerial_view_of_a_forest_fire_(51829087853).jpg
+Local WebP derivatives resized/compressed; illustrative image from Minnesota, not a current Peru observation.

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
 <title>OrbitaFire 3D — Fire in Peru, 2001–2026</title>
 <style>/*MAPLIBRE_CSS*/</style>
 <style>
@@ -13,7 +14,7 @@
   .title { top: 14px; left: 14px; padding: 12px 16px; max-width: 360px; }
   .title h1 { font-size: 18px; margin: 0 0 2px; }
   .title p { margin: 0; color: #c3c2b7; font-size: 12.5px; }
-  .ctrl { bottom: 22px; left: 50%; transform: translateX(-50%); padding: 12px 16px; display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 28px)); }
+  .ctrl { flex-wrap:wrap; bottom: 22px; left: 50%; transform: translateX(-50%); padding: 12px 16px; display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 28px)); }
   .ctrl button { background: #f0efec; color: #0b0b0b; border: 0; border-radius: 8px; padding: 7px 12px; font: 600 13px system-ui, sans-serif; cursor: pointer; }
   .ctrl input[type=range] { flex: 1; accent-color: #eb6834; }
   .year { font-size: 30px; font-weight: 700; min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -27,71 +28,130 @@
   .legend .sw { display: inline-block; width: 14px; height: 3px; background: #4ade80; vertical-align: middle; margin-right: 6px; }
   .credits { bottom: 4px; right: 8px; font-size: 10.5px; color: #c3c2b7; background: none; border: 0; backdrop-filter: none; text-shadow: 0 1px 2px #000; }
   .credits a { color: #c3c2b7; }
+  .seg { display: inline-flex; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; overflow: hidden; margin-top: 10px; }
+  .seg button { background: transparent; color: #f0efec; border: 0; padding: 6px 10px; font: 12.5px system-ui, sans-serif; cursor: pointer; }
+  .seg button.on { background: #f0efec; color: #0b0b0b; font-weight: 600; }
+  .legend .sw.d { height: 0; background: none; border-top: 2px dashed #fbbf24; }
+  .rc-label { font: 600 12px system-ui, sans-serif; color: #fff; background: rgba(6,78,59,.85); border: 1px solid #4ade80; border-radius: 6px; padding: 2px 7px; white-space: nowrap; pointer-events: none; }
   .maplibregl-popup-content { background: #0d1117; color: #f0efec; border-radius: 8px; font-size: 12.5px; padding: 8px 10px; }
   .maplibregl-popup-tip { border-top-color: #0d1117 !important; border-bottom-color: #0d1117 !important; }
   .maplibregl-ctrl-attrib { display: none; }
-  @media (max-width: 700px) { .title { max-width: 60%; } .fly { top: auto; bottom: 104px; right: 14px; } .legend { display: none; } }
+  .seg + .seg { margin-left: 6px; }
+  .legend .note { margin-top: 6px; color: #f0efec; max-width: 220px; font-size: 11.5px; }
+  .legend .sw.az { height: 0; background: none; border-top: 2px solid #67e8f9; }
+  .legend .sw.al { height: 8px; width: 12px; background: none; border: 2px solid #ff2a2a; box-shadow: 0 0 6px #ff2a2a; }
+  .alert { display: none; margin-top: 10px; padding: 7px 10px; border-radius: 8px; background: rgba(185,28,28,.35); border: 1px solid #ff2a2a; color: #fff; font-size: 12.5px; cursor: pointer; }
+  .alert.on { display: block; }
+  .alert b { color: #fecaca; }
+  @media (max-width: 700px) { .title { max-width: 55%; } .fly { top: auto; bottom: 104px; right: 14px; } .legend { display: none; } }
 </style>
 </head>
 <body>
 <div id="map"></div>
-<div class="ui title"><h1>OrbitaFire · Peru in 3D</h1><p>Each column is a 25 km cell; its height and color show how many fire hotspots it had that year (VIIRS-equivalent, harmonized from NASA MODIS + VIIRS). Drag to rotate, scroll to zoom.</p></div>
+<div class="ui title"><h1>OrbitaFire · Peru in 3D</h1><p>Each column is a 25 km cell; its height and color show how many fire hotspots it had that year (VIIRS-equivalent, harmonized from NASA MODIS + VIIRS). Drag to rotate, scroll to zoom.</p><div class="seg" id="mode"><button data-mode="count" class="on">Hotspots</button><button data-mode="anom">vs typical</button></div><div class="seg" id="focus"><button data-focus="1" class="on">Amazon</button><button data-focus="0">All Peru</button></div><br><div class="seg" id="view"><button data-view="cols" class="on">Columns</button><button data-view="heat">Smooth</button><button data-view="both">Both</button></div><div class="alert" id="alert"></div><p id="history-stats" style="margin-top:10px;color:#f0efec;font-size:12px"></p></div>
 <div class="ui fly">
-  <button data-fly="peru">Peru</button>
+  <button data-fly="peru" id="fly-peru">Peru</button>
   <button data-fly="amk">Amarakaeri (Madre de Dios)</button>
   <button data-fly="sira">El Sira (Ucayali)</button>
-  <button data-fly="andes">Andes & Amazon</button>
+  <button data-fly="andes" id="fly-andes">Andes & Amazon</button>
 </div>
-<div class="ui legend"><b>Hotspots per cell in the year</b><div class="ramp"></div><div class="row"><span>1</span><span>100</span><span>1,000+</span></div><div style="margin-top:6px"><span class="sw"></span>Protected areas (SERNANP)</div></div>
+<div class="ui legend"><b>Hotspots per cell in the year</b><div class="ramp" id="leg-r"></div><div class="row" id="leg-l"><span>1</span><span>100</span><span>1,000+</span></div><div style="margin-top:6px"><span class="sw"></span><span id="leg-area">Protected areas (SERNANP)</span></div><div><span class="sw d"></span><span id="leg-buf">Communal Reserve buffer zones</span></div><div><span class="sw az"></span><span id="leg-az">Amazon (approximate)</span></div><div><span class="sw al"></span><span id="leg-al">Alert: ≥2× its typical fire</span></div><div class="note" id="leg-note">Hotspots are satellite fire detections, not temperature.</div></div>
 <div class="ui ctrl">
-  <button id="play">▶ Play</button>
+  <button id="previous">←</button><button id="next">→</button><select id="speed" aria-label="Speed"><option value="1500">0.6×</option><option value="900" selected>1×</option><option value="400">2×</option></select><select id="history-month" aria-label="Month"></select><button id="play">▶ Play</button>
   <input id="slider" type="range" min="2001" max="2026" step="1" value="2024" aria-label="Year">
   <div class="year" id="year">2024</div>
   <div class="tag" id="tag">VIIRS observed</div>
 </div>
-<div class="ui credits">Fire data: NASA FIRMS (MODIS C6.1, VIIRS C2) · Imagery: NASA GIBS Blue Marble · Terrain: AWS Terrain Tiles (Mapzen; SRTM/NASA and others) · Protected areas: SERNANP · Boundaries: geoBoundaries · <a href="https://github.com/JeanLuka17/orbitafire">OrbitaFire</a></div>
+<div class="ui credits">Fire data: NASA FIRMS (MODIS C6.1, VIIRS C2) · Imagery: NASA GIBS Blue Marble; Sentinel-2 cloudless (<a href="https://s2maps.eu">s2maps.eu</a>) by EOX IT Services GmbH, contains modified Copernicus Sentinel data 2016 · Terrain: AWS Terrain Tiles (Mapzen; SRTM/NASA and others) · Protected areas: SERNANP · Boundaries: geoBoundaries · <a href="https://github.com/JeanLuka17/orbitafire">OrbitaFire</a></div>
+<script src="i18n.js"></script>
 <script>/*MAPLIBRE_JS*/</script>
 <script>
 const DATA = /*DATA*/;
 (() => {
   "use strict";
+  let lang='en';
   const YEARS = DATA.years, RES = DATA.res, PAD = RES * 0.14;
   const cells = { type: "FeatureCollection", features: DATA.cells.map((c, i) => ({
     type: "Feature", id: i, properties: { i },
     geometry: { type: "Polygon", coordinates: [[[c.lo - RES / 2 + PAD, c.la - RES / 2 + PAD], [c.lo + RES / 2 - PAD, c.la - RES / 2 + PAD], [c.lo + RES / 2 - PAD, c.la + RES / 2 - PAD], [c.lo - RES / 2 + PAD, c.la + RES / 2 - PAD], [c.lo - RES / 2 + PAD, c.la - RES / 2 + PAD]]] } })) };
+  // typical value of a cell = median of the same period (year or calendar month) in the other complete years 2003-2025
+  const BASE_YEARS = YEARS.filter(v => v >= 2003 && v <= 2025);
+  const median = a => { const s = a.filter(v => v != null).sort((x, z) => x - z), h = s.length >> 1; return !s.length ? 0 : s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+  const cellValue = (c, y, mo) => mo ? (c.m[DATA.months.indexOf(`${y}-${String(mo).padStart(2, '0')}`)] ?? 0) : c.y[YEARS.indexOf(y)];
+  const typical = (c, y, mo) => median(BASE_YEARS.filter(v => v !== y).map(v => cellValue(c, v, mo)));
+  let MODE = "count", FOCUS = 1, VIEW = "cols", ALERTS = [], alertIx = 0;
+  const pts = { type: "FeatureCollection", features: DATA.cells.map((c, i) => ({ type: "Feature", id: i, properties: { i }, geometry: { type: "Point", coordinates: [c.lo, c.la] } })) };
+  const isPartial = (y, mo) => y === 2000 || (!mo && (y === 2026 || y === 2012)) || (y === 2026 && mo >= 11) || (y === 2012 && mo === 1);
   const setYear = y => {
     const k = YEARS.indexOf(y);
-    cells.features.forEach(f => { f.properties.n = DATA.cells[f.properties.i].y[k]; });
-    if (map.getSource("cells")) map.getSource("cells").setData(cells);
+    const mo=+(document.getElementById('history-month').value||0), part=isPartial(y,mo);
+    ALERTS = [];
+    cells.features.forEach(f => {const c=DATA.cells[f.properties.i];const n=cellValue(c,y,mo),t=typical(c,y,mo),r=(n+5)/(t+5);
+      // alert: enough fire (>=10 hotspots) and at least twice its typical value (>=4x: extreme); none for partial periods
+      const al=part||n<10?0:r>=4?2:r>=2?1:0;
+      Object.assign(f.properties,{n,t,az:c.az,al,lr:Math.max(-2.5,Math.min(2.5,Math.log2(r)))});Object.assign(pts.features[f.properties.i].properties,f.properties);
+      if(al&&(c.az||!FOCUS))ALERTS.push({i:f.properties.i,n,r,al});});
+    ALERTS.sort((a,b)=>b.al-a.al||b.n-a.n);alertIx=0;
+    if (map.getSource("cells")) { map.getSource("cells").setData(cells); map.getSource("pts").setData(pts); }
+    alertBox();
     document.getElementById("year").textContent = y;
     document.getElementById("tag").textContent = y < 2012 ? "Reconstructed from MODIS (harmonized)" : y === 2026 ? "VIIRS observed · Jan–Oct" : "VIIRS observed";
   };
+  const COLOR_COUNT = ["interpolate", ["linear"], ["log10", ["max", 1, ["get", "n"]]], 0, "#fde68a", 1, "#fbbf24", 2, "#f97316", 2.6, "#dc2626", 3.2, "#7f1d1d"];
+  const COLOR_ANOM = ["case", ["<", ["+", ["get", "n"], ["get", "t"]], 3], "#9ca3af",
+    ["interpolate", ["linear"], ["get", "lr"], -2, "#1d4ed8", -1, "#60a5fa", 0, "#e5e7eb", 1, "#f97316", 2, "#b91c1c"]];
+  // alert cells get an intense red so "unusual" stands out from "a lot of fire every year"
+  const withAlert = base => ["case", ["==", ["get", "al"], 2], "#ff0033", ["==", ["get", "al"], 1], "#ff3b1f", base];
+  const HEAT_W = { count: ["interpolate", ["linear"], ["coalesce", ["get", "n"], 0], 0, 0, 20, 0.1, 150, 0.4, 600, 0.8, 1500, 1],
+    anom: ["case", ["<", ["coalesce", ["get", "n"], 0], 5], 0, ["interpolate", ["linear"], ["get", "lr"], 0, 0, 2.5, 1]] };
+  const HEAT_C = { count: ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(0,0,0,0)", 0.12, "rgba(253,230,138,0.45)", 0.35, "#fbbf24", 0.55, "#f97316", 0.78, "#dc2626", 1, "#7f1d1d"],
+    anom: ["interpolate", ["linear"], ["heatmap-density"], 0, "rgba(0,0,0,0)", 0.12, "rgba(254,215,170,0.45)", 0.4, "#f97316", 0.7, "#dc2626", 1, "#ff0033"] };
   const style = {
     version: 8,
     sources: {
       sat: { type: "raster", tileSize: 256, maxzoom: 8, attribution: "NASA GIBS",
         tiles: ["https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg"] },
+      s2: { type: "raster", tileSize: 256, minzoom: 6, maxzoom: 14,
+        tiles: ["https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg"] },
       dem: { type: "raster-dem", tileSize: 256, maxzoom: 11, encoding: "terrarium",
         tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"] },
       demShade: { type: "raster-dem", tileSize: 256, maxzoom: 11, encoding: "terrarium",
         tiles: ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"] },
       regions: { type: "geojson", data: DATA.regions },
       areas: { type: "geojson", data: DATA.areas },
+      buffers: { type: "geojson", data: DATA.buffers },
       cells: { type: "geojson", data: cells },
+      pts: { type: "geojson", data: pts },
+      amazon: { type: "geojson", data: DATA.amazon },
     },
     layers: [
       { id: "bg", type: "background", paint: { "background-color": "#0b1520" } },
       { id: "land", type: "fill", source: "regions", paint: { "fill-color": "#1f2a24", "fill-opacity": 1 } },
       { id: "sat", type: "raster", source: "sat", paint: { "raster-saturation": -0.15, "raster-contrast": 0.05 } },
+      { id: "s2", type: "raster", source: "s2", minzoom: 6.5,
+        paint: { "raster-opacity": ["interpolate", ["linear"], ["zoom"], 6.5, 0, 7.6, 1], "raster-saturation": -0.1 } },
       { id: "shade", type: "hillshade", source: "demShade", paint: { "hillshade-exaggeration": 0.35, "hillshade-shadow-color": "#0b1520" } },
       { id: "regions", type: "line", source: "regions", paint: { "line-color": "#ffffff", "line-opacity": 0.35, "line-width": 0.8 } },
+      { id: "buffers", type: "line", source: "buffers", paint: { "line-color": "#fbbf24", "line-width": 1.6, "line-dasharray": [3, 2], "line-opacity": 0.95 } },
       { id: "areas-fill", type: "fill", source: "areas", paint: { "fill-color": "#4ade80", "fill-opacity": 0.10 } },
       { id: "areas-line", type: "line", source: "areas", paint: { "line-color": "#4ade80", "line-width": ["case", ["==", ["get", "cat"], "Reserva Comunal"], 2, 1], "line-opacity": 0.9 } },
+      { id: "amazon", type: "line", source: "amazon", paint: { "line-color": "#67e8f9", "line-width": 1.6, "line-opacity": 0.85 } },
+      { id: "cells-dim", type: "fill", source: "cells", filter: ["all", [">", ["coalesce", ["get", "n"], 0], 0], ["==", ["get", "az"], 0]],
+        paint: { "fill-color": "#9ca3af", "fill-opacity": 0.16 } },
+      { id: "heat", type: "heatmap", source: "pts", layout: { visibility: "none" },
+        paint: { "heatmap-weight": HEAT_W.count, "heatmap-intensity": 2, "heatmap-color": HEAT_C.count, "heatmap-opacity": 0.85,
+          "heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 4, 9, 5, 17, 6, 32, 7, 60, 8, 110] } },
+      { id: "cells-alert", type: "line", source: "cells", filter: [">", ["coalesce", ["get", "al"], 0], 0],
+        paint: { "line-color": "#ff2a2a", "line-width": ["case", ["==", ["get", "al"], 2], 3, 1.8], "line-blur": 0.6 } },
       { id: "cells", type: "fill-extrusion", source: "cells", filter: [">", ["coalesce", ["get", "n"], 0], 0],
         paint: {
-          "fill-extrusion-color": ["interpolate", ["linear"], ["log10", ["max", 1, ["get", "n"]]], 0, "#fde68a", 1, "#fbbf24", 2, "#f97316", 2.6, "#dc2626", 3.2, "#7f1d1d"],
-          "fill-extrusion-height": ["*", ["sqrt", ["get", "n"]], 1500],
-          "fill-extrusion-opacity": 0.88, "fill-extrusion-vertical-gradient": true } },
+          "fill-extrusion-color": withAlert(COLOR_COUNT),
+          "fill-extrusion-height": ["interpolate", ["linear"], ["zoom"],
+            5.5, ["*", ["sqrt", ["get", "n"]], 1500], 7, ["*", ["sqrt", ["get", "n"]], 650],
+            8.5, ["*", ["sqrt", ["get", "n"]], 260], 10, ["*", ["sqrt", ["get", "n"]], 110]],
+          "fill-extrusion-opacity": ["interpolate", ["linear"], ["zoom"], 7.9, 0.88, 8.7, 0], "fill-extrusion-vertical-gradient": true } },
+      { id: "cells-flat", type: "fill", source: "cells", minzoom: 7.6, filter: [">", ["coalesce", ["get", "n"], 0], 0],
+        paint: { "fill-color": withAlert(COLOR_COUNT), "fill-opacity": ["interpolate", ["linear"], ["zoom"], 7.9, 0, 8.7, 0.5] } },
       { id: "labels", type: "symbol", source: "areas", filter: ["==", ["get", "cat"], "Reserva Comunal"],
         layout: { "text-field": ["concat", "RC ", ["get", "name"]], "text-size": 12, "text-font": [] }, paint: { "text-color": "#bbf7d0", "text-halo-color": "#000", "text-halo-width": 1.2 } },
     ],
@@ -102,35 +162,85 @@ const DATA = /*DATA*/;
   const map = new maplibregl.Map({ container: "map", style, center: [-74.2, -9.8], zoom: 4.85, pitch: 62, bearing: -18, maxPitch: 80, antialias: true, attributionControl: false });
   window._map = map;
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "bottom-right");
-  map.on("load", () => {
-    try { map.setTerrain({ source: "dem", exaggeration: 1.6 }); } catch (e) { console.warn("terrain off", e); }
-    setYear(2024);
-  });
+  let ready = false;
+  const onReady = () => { if (ready) return; ready = true;
+    try { map.setTerrain({ source: "dem", exaggeration: 1.25 }); } catch (e) { console.warn("terrain off", e); }
+    DATA.labels.forEach(l => { const el = document.createElement("div"); el.className = "rc-label"; el.textContent = `RC ${l.name}`;
+      new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat([l.lon, l.lat]).addTo(map); });
+    applyFilters(); applyView(); refresh();
+  };
   map.on("error", e => { /* tiles unreachable: keep the 3D columns on the plain background */ if (e && e.sourceId) { const id = e.sourceId; if (id === "dem") { try { map.setTerrain(null); } catch (_) {} } } });
   const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
-  map.on("mousemove", "cells", e => {
+  const X = () => I18N[lang];
+  const cellHtml = f => { const c = DATA.cells[f.properties.i], y = +document.getElementById("slider").value, n = f.properties.n ?? 0, t = f.properties.t ?? 0, r = (n + 5) / (t + 5);
+    return `<b>${y}: ${Math.round(n).toLocaleString()} ${X().hotspots}</b><br>${X().x3_typ}: ${Math.round(t).toLocaleString()}`
+      + (n + t >= 3 ? `<br>${r >= 1 ? "×" + r.toFixed(1) : "÷" + (1 / r).toFixed(1)} ${X().x3_vs}` : "")
+      + (f.properties.al ? `<br><b style="color:#ff6b6b">⚠ ${f.properties.al === 2 ? X().x3_al2 : X().x3_al1}</b>` : "")
+      + (c.az ? "" : `<br><span style="color:#fcd34d">${X().x3_out}</span>`)
+      + `<br><span style="color:#c3c2b7">${y < 2012 ? X().ch_reco : X().ch_obs} · ${c.la.toFixed(2)}°, ${c.lo.toFixed(2)}°</span>`; };
+  const areaHtml = p => `<b>${p.cat} ${p.name}</b><br>${X().x3_area}: ${p.mean ?? "–"}` + ((p.mean ?? 0) >= 5 ? `<br>${X().x3_2024}: ${p.r2024}×` : `<br><span style="color:#c3c2b7">${X().x3_few}</span>`);
+  const hoverCell = e => {
     map.getCanvas().style.cursor = "pointer";
     const f = e.features[0], c = DATA.cells[f.properties.i], y = +document.getElementById("slider").value;
-    const typical = [...c.y.slice(YEARS.indexOf(2012), YEARS.indexOf(2025) + 1)].sort((a, b) => a - b)[7];
-    popup.setLngLat(e.lngLat).setHTML(`<b>${y}: ${Math.round(f.properties.n).toLocaleString()} hotspots</b><br>Typical year (2012–2025 median): ${Math.round(typical).toLocaleString()}<br><span style="color:#c3c2b7">${c.la.toFixed(2)}°, ${c.lo.toFixed(2)}°</span>`).addTo(map);
-  });
-  map.on("mouseleave", "cells", () => { map.getCanvas().style.cursor = ""; popup.remove(); });
-  map.on("click", "areas-fill", e => {
-    const p = e.features[0].properties;
-    new maplibregl.Popup({ offset: 8 }).setLngLat(e.lngLat).setHTML(`<b>${p.cat} ${p.name}</b><br>VIIRS hotspots/yr inside: ${p.mean ?? "–"}<br>2024 vs typical: ${p.r2024 ?? "–"}×`).addTo(map);
-  });
-  const slider = document.getElementById("slider");
-  slider.oninput = () => setYear(+slider.value);
-  let timer = null;
-  document.getElementById("play").onclick = ev => {
-    if (timer) { clearInterval(timer); timer = null; ev.target.textContent = "▶ Play"; return; }
-    ev.target.textContent = "❚❚ Pause";
-    if (+slider.value >= 2026) slider.value = 2001;
-    timer = setInterval(() => { let y = +slider.value + 1; if (y > 2026) { clearInterval(timer); timer = null; ev.target.textContent = "▶ Play"; return; } slider.value = y; setYear(y); }, 900);
+    popup.setLngLat(e.lngLat).setHTML(cellHtml(f)).addTo(map);
   };
+  ["cells", "cells-flat", "cells-dim"].forEach(l => { map.on("mousemove", l, hoverCell); map.on("mouseleave", l, () => { map.getCanvas().style.cursor = ""; popup.remove(); }); });
+  map.on("click", e => {
+    const hit = map.queryRenderedFeatures(e.point, { layers: ["cells", "cells-flat", "cells-dim", "areas-fill"].filter(l => map.getLayer(l) && map.getLayoutProperty(l, "visibility") !== "none") });
+    const cell = hit.find(f => f.layer.id !== "areas-fill"), area = hit.find(f => f.layer.id === "areas-fill");
+    if (area) window.parent.postMessage({type:"orbita-choose",name:area.properties.name},location.origin);
+    else if (cell) { const c = DATA.cells[cell.properties.i]; window.parent.postMessage({type:'orbita-choose',id:`cell|${c.la.toFixed(3)}_${c.lo.toFixed(3)}`},location.origin); }
+    if (!cell && !area) return;
+    new maplibregl.Popup({ offset: 8 }).setLngLat(e.lngLat).setHTML([cell ? cellHtml(cell) : "", area ? areaHtml(area.properties) : ""].filter(Boolean).join("<hr style='border:0;border-top:1px solid #333'>")).addTo(map);
+  });
+  const slider=document.getElementById('slider'),month=document.getElementById('history-month');
+  let timer=null;
+  function tr(){const t=I18N[lang];document.documentElement.lang=lang;document.querySelector('.title h1').textContent=t.ux_history;document.querySelector('.title p').textContent=t.ux_3d_intro;slider.setAttribute('aria-label',t.ux_year);month.setAttribute('aria-label',t.fc_month);document.getElementById('previous').setAttribute('aria-label',t.ux_previous);document.getElementById('next').setAttribute('aria-label',t.ux_next);document.getElementById('speed').setAttribute('aria-label',t.ux_speed);document.querySelector('.legend b').textContent=t.ob_axis;month.options[0].textContent=t.ux_annual;for(let i=1;i<=12;i++)month.options[i].textContent=t.months[i-1];document.getElementById('play').textContent=timer?t.ux_pause:t.ux_play;const b=document.querySelectorAll('#mode button');b[0].textContent=t.x3_count;b[1].textContent=t.x3_anom;document.getElementById('leg-area').textContent=t.x3_leg_area;document.getElementById('leg-buf').textContent=t.x3_leg_buf;document.getElementById('fly-peru').textContent=t.x3_peru;document.getElementById('fly-andes').textContent=t.x3_andes;const f=document.querySelectorAll('#focus button');f[0].textContent=t.x3_amz;f[1].textContent=t.x3_all;const v=document.querySelectorAll('#view button');v[0].textContent=t.x3_cols;v[1].textContent=t.x3_heat;v[2].textContent=t.x3_both;document.getElementById('leg-az').textContent=t.x3_leg_az;document.getElementById('leg-al').textContent=t.x3_leg_al;document.getElementById('leg-note').textContent=t.x3_note;legend();alertBox();}
+  for(let i=0;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i?I18N.en.months[i-1]:I18N.en.ux_annual;month.append(o);}
+  function refresh(){const y=+slider.value,mo=+month.value,t=I18N[lang];setYear(y);
+    const values=DATA.cells.map(c=>mo?c.m[DATA.months.indexOf(`${y}-${String(mo).padStart(2,'0')}`)]:c.y[YEARS.indexOf(y)]);
+    const valid=values.filter(v=>v!=null),total=valid.reduce((a,b)=>a+b,0),peak=Math.max(...valid,0),cell=DATA.cells[values.indexOf(peak)];
+    const partial=y===2000||(!mo&&(y===2026||y===2012))||(y===2026&&mo>=11)||(y===2012&&mo===1);
+    const totals=YEARS.filter(v=>v>2000&&v<2026&&v!==2012&&v!==y).map(v=>DATA.cells.reduce((a,c)=>a+(mo?(c.m[DATA.months.indexOf(`${v}-${String(mo).padStart(2,'0')}`)]??0):c.y[YEARS.indexOf(v)]),0)).sort((a,b)=>a-b),med=totals[Math.floor(totals.length/2)];
+    document.getElementById('tag').textContent=partial?t.ux_partial:y<2012?t.ch_reco:t.ch_obs;
+    document.getElementById('history-stats').textContent=`${t.ux_total}: ${valid.length?Math.round(total).toLocaleString():'–'} · ${t.ux_typical}: ${!partial&&med>0?(total/med).toFixed(2)+'×':'–'} · ${t.ux_peak}: ${cell?cell.la.toFixed(2)+', '+cell.lo.toFixed(2):'–'}`;
+  }
+  function alertBox(){const el=document.getElementById('alert'),t=I18N[lang],y=+slider.value,mo=+month.value;if(!el||!t.x3_alert)return;
+    if(isPartial(y,mo)){el.className='alert on';el.style.background='rgba(55,65,81,.6)';el.style.borderColor='#6b7280';el.innerHTML=t.x3_alert_partial;return;}
+    el.style.background='';el.style.borderColor='';el.className=ALERTS.length?'alert on':'alert on';
+    el.innerHTML=ALERTS.length?t.x3_alert(ALERTS.length,ALERTS.filter(a=>a.al===2).length,FOCUS):t.x3_alert_none(FOCUS);}
+  function nextAlert(){if(!ALERTS.length)return;const a=ALERTS[alertIx%Math.min(ALERTS.length,8)],c=DATA.cells[a.i];alertIx++;
+    map.flyTo({center:[c.lo,c.la],zoom:7.4,pitch:62,duration:2500,essential:true});}
+  function applyFilters(){const base=[">",["coalesce",["get","n"],0],0],keep=FOCUS?["all",base,["==",["get","az"],1]]:base;
+    ['cells','cells-flat'].forEach(l=>map.getLayer(l)&&map.setFilter(l,keep));
+    if(map.getLayer('heat'))map.setFilter('heat',FOCUS?["==",["get","az"],1]:null);
+    if(map.getLayer('cells-alert'))map.setFilter('cells-alert',FOCUS?["all",[">",["coalesce",["get","al"],0],0],["==",["get","az"],1]]:[">",["coalesce",["get","al"],0],0]);
+    if(map.getLayer('cells-dim'))map.setLayoutProperty('cells-dim','visibility',FOCUS?'visible':'none');}
+  function applyView(){const cols=VIEW!=='heat',heat=VIEW!=='cols';
+    ['cells','cells-flat','cells-alert'].forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility',cols?'visible':'none'));
+    if(map.getLayer('heat')){map.setLayoutProperty('heat','visibility',heat?'visible':'none');map.setPaintProperty('heat','heatmap-opacity',VIEW==='both'?0.6:0.88);
+      map.setPaintProperty('heat','heatmap-weight',HEAT_W[MODE]);map.setPaintProperty('heat','heatmap-color',HEAT_C[MODE]);}}
+  document.querySelectorAll('#focus button').forEach(b=>b.onclick=()=>{FOCUS=+b.dataset.focus;document.querySelectorAll('#focus button').forEach(x=>x.classList.toggle('on',x===b));applyFilters();refresh();});
+  document.querySelectorAll('#view button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.view;document.querySelectorAll('#view button').forEach(x=>x.classList.toggle('on',x===b));applyView();});
+  document.getElementById('alert').onclick=nextAlert;
+  function legend(){const t=I18N[lang];document.querySelector('.legend b').textContent=MODE==='anom'?t.x3_leg_anom:t.x3_leg_count;
+    document.getElementById('leg-r').style.background=MODE==='anom'?'linear-gradient(90deg,#1d4ed8,#60a5fa,#e5e7eb,#f97316,#b91c1c)':'linear-gradient(90deg,#fde68a,#fbbf24,#f97316,#dc2626,#7f1d1d)';
+    document.getElementById('leg-l').innerHTML=(MODE==='anom'?t.x3_la:['1','100','1,000+']).map(v=>`<span>${v}</span>`).join('');}
+  function setMode(m){MODE=m;document.querySelectorAll('#mode button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+    if(map.getLayer('cells'))map.setPaintProperty('cells','fill-extrusion-color',withAlert(m==='anom'?COLOR_ANOM:COLOR_COUNT));
+    if(map.getLayer('cells-flat'))map.setPaintProperty('cells-flat','fill-color',withAlert(m==='anom'?COLOR_ANOM:COLOR_COUNT));applyView();legend();}
+  document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+  slider.oninput=refresh;month.onchange=refresh;
+  document.getElementById('previous').onclick=()=>{slider.value=Math.max(2001,+slider.value-1);refresh();};
+  document.getElementById('next').onclick=()=>{slider.value=Math.min(2026,+slider.value+1);refresh();};
+  function stop(){clearTimeout(timer);timer=null;tr();}
+  function tick(){if(+slider.value>=2026){stop();return;}slider.value=+slider.value+1;refresh();timer=setTimeout(tick,+document.getElementById('speed').value);}
+  document.getElementById('play').onclick=()=>{if(timer){stop();return;}if(+slider.value>=2026)slider.value=2001;timer=setTimeout(tick,+document.getElementById('speed').value);tr();};
+  window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data?.type==='orbita-pause'){stop();return;}if(e.data?.type!=='orbita-selection')return;lang=e.data.lang==='es'?'es':'en';tr();const loc=e.data.location;if(loc){if(loc.lat!=null)map.flyTo({center:[loc.lon,loc.lat],zoom:7});else{const f=[...DATA.areas.features,...DATA.regions.features].find(f=>f.properties.name===loc.name);if(map.getLayer('areas-line'))map.setPaintProperty('areas-line','line-color',['case',['==',['get','name'],loc.name],'#ffe18c','#4ade80']);if(f){const points=f.geometry.coordinates.flat(Infinity);const xs=points.filter((_,i)=>i%2===0),ys=points.filter((_,i)=>i%2===1);map.fitBounds([[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.max(...ys)]],{padding:70});}}}refresh();});
+  tr();map.once('style.load',onReady);map.once('load',onReady);if(map.isStyleLoaded())onReady();window.parent.postMessage({type:'orbita-ready'},location.origin);
   const VIEWS = {
     peru: { center: [-74.2, -9.8], zoom: 4.85, pitch: 62, bearing: -18 },
-    amk: { center: [-70.9, -12.75], zoom: 7.6, pitch: 66, bearing: -30 },
+    amk: { center: [-70.9, -12.75], zoom: 7.5, pitch: 66, bearing: -30 },
     sira: { center: [-74.6, -9.9], zoom: 7.3, pitch: 66, bearing: 25 },
     andes: { center: [-73.2, -13.6], zoom: 6.1, pitch: 72, bearing: 60 },
   };
