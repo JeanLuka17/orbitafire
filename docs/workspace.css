@@ -92,3 +92,9 @@
 .tc-unit,.tc-unit.on{border:1px solid var(--ui-line);border-radius:12px;padding:14px 16px;margin:12px 0 0;background:#fff;box-shadow:0 1px 6px #18302612}
 .tc-unit:first-of-type{border-top:1px solid var(--ui-line)}
 .analysis-close-bar{position:sticky;top:0;bottom:auto;z-index:6;margin:0 0 4px;padding:0 0 8px;background:linear-gradient(#fff,#fff 70%,#fff0)}
+/* team request: calendar controls, year picker and chart in one card */
+.location-analysis #fire-calendar{border:1px solid var(--ui-line);border-radius:12px;padding:16px 18px;margin-top:18px;background:#fff;box-shadow:0 1px 6px #18302612}
+.location-analysis #fire-calendar>h2{display:block;font-size:16px;margin:0 0 12px}
+.location-analysis #fire-calendar>.analysis-scope,.location-analysis #fire-calendar>.analysis-month{display:inline-flex;align-items:center;gap:8px;margin:0 14px 10px 0}
+.location-analysis #fire-calendar>.chart-card{background:#fbfcfa}
+.location-analysis #fire-calendar>.analysis-scope>span,.location-analysis #fire-calendar>.analysis-month>span{font-size:12px;color:var(--ui-muted)}

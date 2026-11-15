@@ -269,3 +269,4 @@ tc_desc_reserve:"Área protegida delimitada por SERNANP.",tc_desc_area:"Área pr
 tc_reading:o=>{if(o.incomplete)return "El mes aún no termina, así que todavía no se puede comparar.";const base=o.median!=null?`Lo habitual para ${o.month} es registrar ${o.median} ${Math.round(o.medianN)===1?"punto":"puntos"} de calor. `:"";
  return base+(o.state==="exceptional"?"Esta actividad es mucho mayor de lo normal y conviene verificarla.":o.state==="unusual"?"Esta actividad es mayor de lo normal.":o.state==="normal"?"Esta actividad está dentro de lo normal.":"No hay suficiente historial para compararla.")+(o.estimated?" (Estimado a partir de MODIS.)":"");},
 tc_hotspot_def:"Estas detecciones indican posible actividad de fuego, pero no equivalen a incendios confirmados."});
+Object.assign(I18N.es,{fc_h:"Calendario de actividad de incendios"});
