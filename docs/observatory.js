@@ -162,7 +162,7 @@ const Observatory = (() => {
       $("calendar-detail").textContent=t().ob_heat_help;
     }
     if(c.S.detailTime) $("calendar-detail").textContent=detail(current.records.find(r=>r.time===c.S.detailTime));
-    seasonal(); priority(); anomalies(all,mo); territory(loc);
+    seasonal(); priority(); anomalies(all,mo); territory(loc); if(typeof TerritoryCard!=="undefined")TerritoryCard.render(loc,current,data);
     Experience.update(current,loc);
   }
   function seasonal() {
@@ -219,5 +219,6 @@ const Observatory = (() => {
     if(mode==='history'){c.S.compareYears=null;$("fc-from").selectedIndex=0;$("fc-to").selectedIndex=$("fc-to").options.length-1;document.querySelectorAll('#year-picker input').forEach(e=>e.checked=true);}
     render();
   }
-  return {init,select,render,configureComparison};
+  function refreshCard(){const loc=locations?.get(c?.S.calendarLoc);if(loc&&current&&typeof TerritoryCard!=="undefined")TerritoryCard.render(loc,current,data);}
+  return {init,select,render,configureComparison,refreshCard};
 })();

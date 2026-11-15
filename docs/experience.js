@@ -1,3 +1,11 @@
+// Six-level hotspot scale for the 2D map. Breaks are fixed for every place and month so colors compare across Peru.
+// They are log-spaced and follow the real distribution of non-zero monthly cell counts (2000–2026): about 58% of
+// them are below 5, 87% below 20, 96% below 50 and 99% below 150 (computed from docs/data/control.json).
+window.OrbitaLevels={breaks:[5,20,50,150],colors:['#E8EFE9','#F2DB89','#F4AB4C','#EB7138','#CA3039','#681A56'],missing:'#B9BDBA',
+  keys:['lv_none','lv_low','lv_mod','lv_high','lv_vhigh','lv_ext'],
+  level(v){if(v==null||!Number.isFinite(v))return -1;if(v<=0)return 0;const b=this.breaks;return v<b[0]?1:v<b[1]?2:v<b[2]?3:v<b[3]?4:5;},
+  color(v){const i=this.level(v);return i<0?this.missing:this.colors[i];},
+  ranges(){const b=this.breaks;return ['0','<'+b[0],b[0]+'–'+(b[1]-1),b[1]+'–'+(b[2]-1),b[2]+'–'+(b[3]-1),b[3]+'+'];}};
 window.OrbitaPalette={colors:['#fff9f8','#f6d4ce','#ed9c8d','#d64e41','#831c23'],activity(v,max){if(v==null)return '#b7bab7';if(v===0)return '#ffffff';const k=Math.min(4,Math.log1p(v)/Math.log1p(max||this.max||100)*4),i=Math.min(3,Math.floor(k)),f=k-i;const a=this.colors[i],b=this.colors[i+1];return '#'+[1,3,5].map(j=>Math.round(parseInt(a.slice(j,j+2),16)*(1-f)+parseInt(b.slice(j,j+2),16)*f).toString(16).padStart(2,'0')).join('');}};
 // Progressive disclosure shell; reuses the observatory and both existing maps.
 const Experience = (()=>{
@@ -37,7 +45,7 @@ const Experience = (()=>{
   $('view-details').onclick=()=>openAnalysis('details');$('collapse-analysis').onclick=closeAnalysis;
   $('comparison-granularity').onchange=renderTemporal;$('reference-day').onchange=renderTemporal;
   for(const [id,key] of [['seasonal','ob_seasonal_h'],['anomalies','ob_anomalies_h']]){const d=make('details','analysis-details');const s=document.createElement('summary');s.dataset.i18n=key;d.append(s,$(id));analysis.append(d);}
-  const territorial=make('details','analysis-details');territorial.innerHTML='<summary data-i18n="ux_territory"></summary>';territorial.append($('panel'),$('territory-card'));analysis.append(territorial);
+  const territorial=make('details','analysis-details territorial-details');territorial.open=true;territorial.innerHTML='<summary data-i18n="ux_territory"></summary>';const tcard=$('territory-card');territorial.append($('panel'),tcard);tcard.hidden=true;analysis.querySelector('.analysis-reading').after(territorial);
   const prioritiesBox=make('details','priority-mini');prioritiesBox.innerHTML='<summary><span data-i18n="ux_attention"></span><span id="priority-count" class="priority-count"></span></summary><div id="priority-mini-list"></div>';mapSection.append(prioritiesBox);
   const archive=make('details','archive');archive.innerHTML='<summary data-i18n="ux_all_tables"></summary>';archive.append($('reserves'));workspace.append(archive);
   const history=make('section','history-view');history.id='history-view';history.hidden=true;history.innerHTML='<iframe id="history-frame" title="OrbitaFire Historical Explorer"></iframe>';main.append(history);

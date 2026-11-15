@@ -171,13 +171,15 @@
       c.rect = L.rectangle([[c.la - res / 2, c.lo - res / 2], [c.la + res / 2, c.lo + res / 2]], { stroke: false, fillOpacity: .78, interactive: false });
       cellLayer.addLayer(c.rect);
     });
-    const style = kind => f => kind === "area" ? { color: "#006300", weight: 1.4, fillColor: "#008300", fillOpacity: .06 } : { color: "#006300", weight: 1, dashArray: "4 3", fill: false };
-    areaLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area" && !/^(RN16|RN18|RN13)/.test(f.properties.code)) }, { style: style("area"), interactive: true, bubblingMouseEvents:false, onEachFeature:(f,l)=>{l.bindTooltip(f.properties.name);l.on('mouseover',()=>l.setStyle({weight:3}));l.on('mouseout',()=>l.setStyle({weight:1.4}));l.on('click',e=>{map.fitBounds(l.getBounds());select(e.latlng.lat,e.latlng.lng,f.properties.id);});} }).addTo(map);
+    const style = kind => f => kind === "area" ? { color: "#006300", weight: 1.8, fillColor: "#008300", fillOpacity: .06 } : { color: "#00502a", weight: 1.4, dashArray: "5 3", fill: false };
+    const areaCase = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area" && !/^(RN16|RN18|RN13)/.test(f.properties.code)) }, { style: { color: "#ffffff", weight: 3.4, opacity: .85, fill: false }, interactive: false }).addTo(map);
+    const bufCase = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "buffer") }, { style: { color: "#ffffff", weight: 2.8, opacity: .8, fill: false }, interactive: false }).addTo(map);
+    areaLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area" && !/^(RN16|RN18|RN13)/.test(f.properties.code)) }, { style: style("area"), interactive: true, bubblingMouseEvents:false, onEachFeature:(f,l)=>{l.bindTooltip(f.properties.name);l.on('mouseover',()=>l.setStyle({weight:3}));l.on('mouseout',()=>l.setStyle({weight:1.8}));l.on('click',e=>{map.fitBounds(l.getBounds());select(e.latlng.lat,e.latlng.lng,f.properties.id);});} }).addTo(map);
     bufLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "buffer") }, { style: style("buffer"), interactive: false }).addTo(map);
     commLayer = L.layerGroup(D.comm.map(c => L.circleMarker([c[0], c[1]], { radius: 2.6, color: "#fcfcfb", weight: .6, fillColor: "#6250d6", fillOpacity: .9, interactive: false })));
     map.on("click", e => select(e.latlng.lat, e.latlng.lng));
-    $("lyr-areas").onchange = e => e.target.checked ? areaLayer.addTo(map) : map.removeLayer(areaLayer);
-    $("lyr-buffers").onchange = e => e.target.checked ? bufLayer.addTo(map) : map.removeLayer(bufLayer);
+    $("lyr-areas").onchange = e => { [areaCase, areaLayer].forEach(l => e.target.checked ? l.addTo(map) : map.removeLayer(l)); };
+    $("lyr-buffers").onchange = e => { [bufCase, bufLayer].forEach(l => e.target.checked ? l.addTo(map) : map.removeLayer(l)); };
     $("lyr-comm").onchange = e => e.target.checked ? commLayer.addTo(map) : map.removeLayer(commLayer);
     $("lyr-base").onchange = e => e.target.checked ? baseLayer.addTo(map) : map.removeLayer(baseLayer);
     document.querySelectorAll("#mode button").forEach(b => b.onclick = () => { S.mode = b.dataset.mode; document.querySelectorAll("#mode button").forEach(x => x.classList.toggle("on", x === b)); paintCells(); legend(); });
@@ -185,13 +187,20 @@
     window.addEventListener('resize',()=>map.invalidateSize());let entered=false;window.addEventListener('orbita-enter',()=>{map.invalidateSize();if(!entered){map.fitBounds(L.geoJSON(D.regions).getBounds(),{paddingTopLeft:[30,120],paddingBottomRight:[30,50]});entered=true;}});
     let sectorMarker;window.addEventListener('orbita-sector',e=>{if(sectorMarker)map.removeLayer(sectorMarker);const d=e.detail;if(!d)return;sectorMarker=L.circleMarker([d.lat,d.lon],{radius:10,color:'#691724',fillColor:'#fff',fillOpacity:1,weight:4}).addTo(map).bindTooltip(T().nx_sector).on('click',()=>select(d.lat,d.lon,d.id));if(d.focus)map.flyTo([d.lat,d.lon],9);});
     let selectionOutline;
-    window.addEventListener('orbita-highlight',e=>{const loc=e.detail;if(selectionOutline)map.removeLayer(selectionOutline);const f=D.areaById[loc.id] || (loc.kind==='region'?D.regions.features.find(f=>f.properties.name===loc.name):null);if(f)selectionOutline=L.geoJSON(f,{interactive:false,style:{color:'#ffe18c',weight:4,fill:false}}).addTo(map);else if(loc.kind==='cell')selectionOutline=L.rectangle([[loc.lat-.125,loc.lon-.125],[loc.lat+.125,loc.lon+.125]],{interactive:false,color:'#111',weight:3,fill:false}).addTo(map);});
+    window.addEventListener('orbita-highlight',e=>{const loc=e.detail;if(selectionOutline)map.removeLayer(selectionOutline);const f=D.areaById[loc.id] || (loc.kind==='region'?D.regions.features.find(f=>f.properties.name===loc.name):null);if(f)selectionOutline=L.geoJSON(f,{interactive:false,style:{color:'#0b3d91',weight:4,fill:false}}).addTo(map);else if(loc.kind==='cell')selectionOutline=L.rectangle([[loc.lat-.125,loc.lon-.125],[loc.lat+.125,loc.lon+.125]],{interactive:false,color:'#111',weight:3,fill:false}).addTo(map);});
     window.addEventListener('orbita-paint',e=>{
       const {control,month,year,layer}=e.detail,idx=control.months.indexOf(`${year}-${String(month).padStart(2,'0')}`),lookup=new Map(control.cells.map(c=>[`${c.lat.toFixed(3)}_${c.lon.toFixed(3)}`,c]));
+      const LV=window.OrbitaLevels;
       D.cells.cells.forEach(c=>{const d=lookup.get(`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`),v=layer==='historical'?d?.season[month-1]:layer==='observed'?d?.o[idx]:d?.z[idx];
-        const color=v==null?'#a9ada9':layer==='anomaly'?ramp(DIV,(Math.max(-3.5,Math.min(3.5,v))+3.5)/7):window.OrbitaPalette.activity(v,window.OrbitaPalette.cellMax);
-        c.rect.setStyle({fillColor:color,fillOpacity:.8});});
-      $('legend').dataset.mode=layer;$('legend').innerHTML=`<b>${layer==='anomaly'?T().ob_anomalies_h:T().nx_fire_activity}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${(layer==='anomaly'?DIV:window.OrbitaPalette.colors).join(',')})"></span><span class="legend-ticks">${layer==='anomaly'?'<span>−3.5</span><span>0</span><span>2</span><span>3.5+</span>':`<span>0</span><span style="left:${100*Math.log1p(10)/Math.log1p(window.OrbitaPalette.cellMax)}%">10</span><span style="left:${100*Math.log1p(100)/Math.log1p(window.OrbitaPalette.cellMax)}%">100</span><span>${Math.round(window.OrbitaPalette.cellMax).toLocaleString()}</span>`}</span><small>${T().months[month-1]} · ${layer==='historical'?T().ux_historical:year+' '+(layer==='observed'?T().ux_observed:T().ob_anomalies_h)} · ${T().nx_grey}</small><small class="legend-note">${layer==='anomaly'?T().x3_leg_anom+' · ':''}${T().x3_note}</small>`;
+        if(v==null||!Number.isFinite(v)){c.rect.setStyle({fillColor:LV.missing,fillOpacity:.45,stroke:true,color:'#7d827e',weight:.7,dashArray:'2 3'});return;}
+        // anomaly layer: deviation from the cell's own history (robust z), not an absolute count
+        const color=layer==='anomaly'?ramp(DIV,(Math.max(-3.5,Math.min(3.5,v))+3.5)/7):LV.color(v);
+        c.rect.setStyle({fillColor:color,fillOpacity:layer==='anomaly'?.8:(v<=0?.55:.85),stroke:false});});
+      const t=T(),cap=`<small>${t.months[month-1]} · ${layer==='historical'?t.ux_historical:year+' '+(layer==='observed'?t.ux_observed:t.ob_anomalies_h)}</small>`,miss=`<span class="lv-row"><i class="lv-sw lv-miss"></i>${t.lv_missing}</span>`;
+      $('legend').dataset.mode=layer;
+      $('legend').innerHTML=layer==='anomaly'
+        ?`<b>${t.ob_anomalies_h}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${DIV.join(',')})"></span><span class="legend-ticks"><span>−3.5</span><span>0</span><span>2</span><span>3.5+</span></span><small>${t.lv_anom_help}</small>${cap}${miss}`
+        :`<b>${t.lv_title}</b><div class="lv-list">${LV.colors.map((col,i)=>`<span class="lv-row"><i class="lv-sw" style="background:${col}"></i><span>${t[LV.keys[i]]}</span><em>${LV.ranges()[i]}</em></span>`).join('')}${miss}</div>${cap}<small class="legend-note">${t.x3_note}</small>`;
     });
   }
   function paintCells() {
@@ -220,45 +229,9 @@
     selMarker = L.circleMarker([lat, lon], { radius: 7, color: "#0b0b0b", weight: 2, fill: false, interactive: false }).addTo(map);
     renderPanel(); if(D.peru)fireCalendar();
   }
-  function renderPanel() {
-    const t = T(), p = $("panel");
-    if (!S.sel) { p.innerHTML = `<h3>${esc(t.p_intro)}</h3><p class="empty">${esc(t.p_intro2)}</p>`; return; }
-    const { lat, lon, prefer } = S.sel, res = D.cells.res;
-    const key = `${(Math.floor(lat / res) * res + res / 2).toFixed(3)}_${(Math.floor(lon / res) * res + res / 2).toFixed(3)}`;
-    const cell = D.cellIdx[key];
-    const units = D.areas.features.filter(f => { const b = f.bb; return lon >= b[0] && lon <= b[2] && lat >= b[1] && lat <= b[3] && inGeom(lon, lat, f.geometry); });
-    let unit = units.find(f => f.properties.kind === "area") || units[0];
-    if (prefer) unit = D.areaById[prefer] || unit;
-    const region = D.regions.features.find(f => inGeom(lon, lat, f.geometry));
-    let h = "";
-    const title = unit ? unit.properties.name : (region ? region.properties.name : `${lat.toFixed(2)}, ${lon.toFixed(2)}`);
-    h += `<h3>${esc(unit ? `${unit.properties.cat} ${unit.properties.name}` : title)}</h3>`;
-    h += `<div class="where">${lat.toFixed(3)}°, ${lon.toFixed(3)}°${region ? ` · ${t.p_region}: ${esc(region.properties.name)}` : ""}</div>`;
-    if (unit) {
-      const u = unit.properties, ser = D.series[u.id];
-      h += `<div class="block"><b>${esc(u.kind === "area" ? t.p_in_area : t.p_in_buffer)}: ${esc(u.name)}</b> ${badge(catFromZ(u.z2024))}`;
-      h += `<div class="kv"><span>${t.p_mean}</span><span>${fmt(u.mean)} ${t.hotspots}</span><span>${t.p_2024}</span><span>${fx(u.r2024)}</span>`
-        + `<span>${t.p_trend}</span><span>${u.trend > 0 ? "+" : ""}${u.trend ?? "–"} ${t.pct_yr}</span><span>${t.p_peak}</span><span>${u.peak ? t.months[I18N.en.months.indexOf(u.peak)] : "–"}</span>`
-        + `<span>${t.p_ytd}</span><span>${fx(u.ytd)}</span><span>${t.p_last}</span><span>${fx(u.last)}</span><span>${t.p_area}</span><span>${fmt(u.km2)} ${t.km2}</span></div>`;
-      h += `<div class="small">${esc(t.p_unit_s)}</div><div id="pc-unit" class="chart"></div><div class="small">${t.p_partial}</div>`;
-      if (u.peoples) h += `<div style="margin-top:8px"><span class="small">${t.p_peoples}: </span>${u.peoples.split(";").map(x => x.trim()).filter(Boolean).slice(0, 10).map(x => `<span class="tag">${esc(x)}</span>`).join("")}</div>`;
-      h += `</div>`;
-    } else h += `<div class="block"><span class="empty">${esc(t.p_outside)}</span></div>`;
-    if (cell) {
-      const cat = (cell.dens >= 2 || cell.y[D.cells.years.indexOf(2024)] >= 10) ? catFromZ(cell.z) : "n/a";
-      h += `<div class="block"><b>${t.p_cell}</b><div class="kv"><span>${t.p_anom}</span><span>${cat === "n/a" ? "–" : fx(cell.r)} ${badge(cat)}</span><span>${t.p_mean} (2012–2025)</span><span>${fmt(cell.dens)}</span></div>`
-        + `<div class="small">${t.p_cell_s}</div><div id="pc-cell" class="chart"></div>`;
-      if (cat === "n/a") h += `<div class="small">${t.p_nodata}</div>`;
-      const comm = cell.c.map(i => D.comm[i]);
-      h += `</div><div class="block"><b>${t.p_comm}: ${comm.length}</b>`;
-      h += comm.length ? `<ul class="small" style="margin:6px 0 0;padding-left:18px">${comm.slice(0, 12).map(c => `<li>${esc(c[2])} <span style="color:#898781">· ${esc(c[3])}</span></li>`).join("")}${comm.length > 12 ? `<li>+${comm.length - 12}</li>` : ""}</ul>` : `<div class="small">${t.p_none}</div>`;
-      h += `</div>`;
-    }
-    p.innerHTML = h;
-    if (unit) { const ser = D.series[unit.properties.id] || { years: {} };
-      bars($("pc-unit"), Array.from({ length: 15 }, (_, i) => 2012 + i).map(y => ({ label: `${y}`, short: `'${String(y).slice(2)}`, value: ser.years[y] || 0, muted: y === 2026 })), { every: 2, H: 140, color: "#008300" }); }
-    if (cell) bars($("pc-cell"), D.cells.years.map((y, i) => ({ label: `${y}`, short: `'${String(y).slice(2)}`, value: cell.y[i], muted: y < 2012 || y === 2026 })), { every: 5, H: 140 });
-  }
+  // The territorial context is a compact card rendered by territory.js from the observatory records
+  // of the selected unit and period (see Observatory.render). Here we only refresh it after a language change.
+  function renderPanel() { if (typeof TerritoryCard !== "undefined" && typeof Observatory !== "undefined") Observatory.refreshCard(); }
 
   // ---------- ranking ----------
   function ranking() {
@@ -300,6 +273,7 @@
     D.cellIdx = {}; D.cells.cells.forEach(c => D.cellIdx[`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`] = c);
     try { const saved = localStorage.getItem("orbitafire-lang"); if (saved === "es" || saved === "en") LANG = saved; } catch (e) { /* storage unavailable */ }
     initMap();
+    TerritoryCard.init({ D, T, fmt, esc, inGeom, openHistory: () => { Experience.openAnalysis('history'); requestAnimationFrame(() => $('fire-calendar')?.scrollIntoView({ block: 'start', behavior: 'smooth' })); } });
     await Observatory.init({D,S,T,fmt,esc,svg,add,yAxis,niceMax,showTip,hideTip,badge,ramp,SEQ,DIV,
       focus: loc => {
         const feature=loc.kind==="region" ? D.regions.features.find(f=>f.properties.name===loc.name) : D.areaById[loc.id];

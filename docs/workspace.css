@@ -25,3 +25,43 @@
 .sheet-toolbar{display:flex;justify-content:flex-end;min-height:26px;margin:-8px -8px 4px 0}.context-sheet .close-sheet{position:static;float:none;flex:none;margin:0}.context-actions{grid-template-columns:1fr;position:static;bottom:auto;margin:18px 0 0;padding:0;box-shadow:none}.context-actions button{align-items:center;padding:13px}.context-actions button small{display:none}.analysis-dialog .analysis-heading{padding-right:0;align-items:flex-start}.analysis-heading>div{min-width:0;flex:1}.analysis-dialog #collapse-analysis{position:static;top:auto;right:auto;flex:none;align-self:flex-start;max-width:none;margin:0}.analysis-dialog>.analysis-details{margin-top:18px}.analysis-scope select{max-width:230px!important}
 .legend small.legend-note{color:#7a2e1f;font-weight:600}
 .priority-mini{bottom:178px}
+/* compact territorial card (territory.js) */
+.territorial-details #panel{background:none;border:0;padding:0;min-height:0;max-height:none;overflow:visible}
+.tc{border:1px solid var(--ui-line);border-radius:12px;padding:16px 18px;background:#fff;color:var(--ui-ink);max-width:640px}
+.tc h3{margin:0;font-size:19px;line-height:1.25}
+.tc-sub{color:var(--ui-muted);font-size:12.5px;margin-top:3px}
+.tc-status{display:inline-block;margin:12px 0 10px;border-radius:20px;padding:5px 12px;font-size:12.5px;font-weight:650;background:#edf1ed}
+.tc-status span{font-weight:500;opacity:.8}
+.tc-status.unusual{background:#fbe9e2;color:#943a2b}.tc-status.exceptional{background:#842c2a;color:#fff}.tc-status.insufficient{background:#eceeec;color:#68716a}
+.tc-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tc-pair.one{grid-template-columns:1fr}
+.tc-box{border:1px solid var(--ui-line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;background:#fafbfa}
+.tc-box.ring{border-style:dashed}
+.tc-box.on{border-color:var(--ui-accent);box-shadow:inset 0 0 0 1px var(--ui-accent);background:#fff}
+.tc-k{font-size:11.5px;color:var(--ui-muted);font-weight:600}
+.tc-box b{font-size:24px;line-height:1.1}.tc-box b small{font-size:12px;font-weight:500;color:var(--ui-muted)}
+.tc-nodata{font-size:15px;color:var(--ui-muted);font-weight:600}
+.tc-tag{align-self:flex-start;font-size:10.5px;border-radius:10px;padding:2px 8px;background:#edf1ed;font-weight:650}
+.tc-tag.unusual{background:#fbe9e2;color:#943a2b}.tc-tag.exceptional{background:#842c2a;color:#fff}.tc-tag.insufficient{background:#eceeec;color:#68716a}
+.tc-est{font-size:11px;color:var(--ui-muted)}
+.tc-note{font-size:11.5px;color:var(--ui-muted);margin:8px 0 0}
+.tc-text{font-size:14px;margin:12px 0 4px;line-height:1.45}
+.tc-foot{font-size:11px;color:var(--ui-muted);margin:0 0 12px}
+.tc-history{background:var(--ui-accent);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:650;cursor:pointer}
+.tc-history:hover{filter:brightness(1.1)}
+.tc-info{margin-top:12px;border-top:1px solid var(--ui-line);padding-top:8px}
+.tc-info summary{cursor:pointer;font-weight:650;font-size:13px}
+.tc-info dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;font-size:12.5px;margin:10px 0 0}
+.tc-info dt{color:var(--ui-muted)}.tc-info dd{margin:0}
+@media (max-width:520px){.tc{padding:14px}.tc-pair{grid-template-columns:1fr}.tc-info dl{grid-template-columns:1fr}.tc-info dd{margin-bottom:6px}}
+/* six-level hotspot legend */
+.map-ui>.legend{width:230px}
+.lv-list{display:grid;gap:3px;margin:8px 0 4px}
+.lv-row{display:grid;grid-template-columns:16px 1fr auto;align-items:center;gap:7px;font-size:11px}
+.lv-row em{font-style:normal;color:var(--ui-muted);font-variant-numeric:tabular-nums}
+.lv-sw{display:inline-block;width:16px;height:11px;border-radius:2px;border:1px solid #0000001f}
+.lv-miss{background:repeating-linear-gradient(45deg,#B9BDBA 0 3px,#e4e6e4 3px 6px)}
+.legend[data-mode=anomaly] .lv-row{margin-top:6px}
+.priority-mini{bottom:268px}
+@media (max-width:700px){.map-ui>.legend{width:auto;max-width:58%;left:10px;bottom:10px;padding:8px 10px}
+ .lv-list{display:flex;flex-wrap:wrap;gap:3px 8px;margin:6px 0 2px}.lv-row{display:flex;gap:4px;font-size:10px}.lv-row>span{display:none}
+ .lv-row:last-child>span{display:none}.legend small.legend-note{display:none}.priority-mini{bottom:150px;left:10px;width:58%}}
