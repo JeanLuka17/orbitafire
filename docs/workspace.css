@@ -80,3 +80,11 @@
 .tc-big{font-size:30px;font-weight:700;line-height:1.1;margin-top:4px}.tc-big small{font-size:13px;font-weight:500;color:var(--ui-muted)}
 .tc-unit .tc-text{font-size:13.5px;margin:8px 0 0}
 .tc-foot{display:flex;gap:6px;align-items:flex-start;margin:12px 0 0}
+/* team request: no dialog heading, close button at the bottom, flat card (no nested boxes) */
+.location-analysis .analysis-heading{display:none}
+.analysis-close-bar{position:sticky;bottom:0;display:flex;justify-content:flex-end;padding:12px 0 4px;background:linear-gradient(#fff0,#fff 35%);margin-top:16px}
+.analysis-close-bar #collapse-analysis{position:static}
+.tc{border:0;padding:0;background:none;max-width:680px}
+.tc-unit,.tc-unit.on{border:0;border-radius:0;box-shadow:none;background:none;padding:14px 0;margin:0;border-top:1px solid var(--ui-line)}
+.tc-unit:first-of-type{border-top:0}
+.location-analysis>details.territorial-details{border-top:0;margin-top:0;padding-top:0}
