@@ -98,3 +98,21 @@
 .location-analysis #fire-calendar>.analysis-scope,.location-analysis #fire-calendar>.analysis-month{display:inline-flex;align-items:center;gap:8px;margin:0 14px 10px 0}
 .location-analysis #fire-calendar>.chart-card{background:#fbfcfa}
 .location-analysis #fire-calendar>.analysis-scope>span,.location-analysis #fire-calendar>.analysis-month>span{font-size:12px;color:var(--ui-muted)}
+/* landing: cinematic first screen + short "who it is for" section on scroll */
+.welcome{display:block;overflow-y:auto;place-items:initial;background-attachment:fixed}
+.welcome-hero{min-height:100dvh;display:grid;place-items:center;position:relative}
+.welcome h1{margin:14px auto 6px}
+.welcome .welcome-tagline{font-size:clamp(22px,3vw,30px);font-weight:600;line-height:1.3;margin:0 auto 14px;color:#fff}
+.welcome .welcome-lead{font-size:17px;line-height:1.6;max-width:620px;margin:0 auto;color:#e9efe9}
+.welcome .welcome-source{font-size:12px;letter-spacing:.12em;color:#f1ddc1;margin:18px 0 0}
+.welcome small{margin-top:26px}
+.welcome-scroll{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:28px;opacity:.75;animation:lp-bob 2s infinite}
+@keyframes lp-bob{50%{transform:translate(-50%,6px)}}
+.welcome-more{background:#06110df2;padding:56px 24px 64px;text-align:center}
+.welcome-more h2{font-size:clamp(20px,2.6vw,28px);margin:0 auto 12px;max-width:760px}
+.welcome-more .welcome-users{font-size:16px;line-height:1.6;max-width:720px;margin:0 auto 34px;color:#d8e2da}
+.welcome-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:980px;margin:0 auto;text-align:left}
+.welcome-benefits>div{border:1px solid #ffffff26;border-radius:12px;padding:18px 20px;background:#ffffff0d}
+.welcome-benefits h3{margin:0 0 6px;font-size:16px;color:#f4a046}
+.welcome-benefits p{margin:0;font-size:14px;line-height:1.5;color:#e2e9e3}
+@media (max-width:760px){.welcome-benefits{grid-template-columns:1fr}.welcome .welcome-lead{font-size:15px}}

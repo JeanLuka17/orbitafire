@@ -270,3 +270,18 @@ tc_reading:o=>{if(o.incomplete)return "El mes aún no termina, así que todavía
  return base+(o.state==="exceptional"?"Esta actividad es mucho mayor de lo normal y conviene verificarla.":o.state==="unusual"?"Esta actividad es mayor de lo normal.":o.state==="normal"?"Esta actividad está dentro de lo normal.":"No hay suficiente historial para compararla.")+(o.estimated?" (Estimado a partir de MODIS.)":"");},
 tc_hotspot_def:"Estas detecciones indican posible actividad de fuego, pero no equivalen a incendios confirmados."});
 Object.assign(I18N.es,{fc_h:"Calendario de actividad de incendios"});
+// Landing (home) copy
+Object.assign(I18N.en,{lp_eyebrow:"NASA SPACE APPS CHALLENGE 2026 · PERU",lp_tagline:"Know the past to protect the future.",
+lp_lead:"We analyze 25 years of satellite observations to identify critical seasons, detect unusual activity and support the monitoring of Peru's forests.",
+lp_users_h:"Satellite technology for those who protect our forests",
+lp_users:"OrbitaFire is designed to support park rangers, community brigades and forest monitoring teams in Peru, making it easier to identify areas with unusual fire activity and to plan ahead.",
+lp_b1_t:"See where to pay attention",lp_b1:"Explore protected areas and spot sectors with high fire activity.",
+lp_b2_t:"Anticipate critical seasons",lp_b2:"Find out in which months fire activity has historically concentrated.",
+lp_b3_t:"Recognize unusual activity",lp_b3:"Compare current detections with past records and find areas that deserve checking."});
+Object.assign(I18N.es,{lp_eyebrow:"NASA SPACE APPS CHALLENGE 2026 · PERÚ",lp_tagline:"Conocer el pasado para proteger el futuro.",
+lp_lead:"Analizamos 25 años de observaciones satelitales para identificar temporadas críticas, detectar actividad inusual y apoyar la vigilancia de los bosques del Perú.",
+lp_users_h:"Tecnología satelital al servicio de quienes protegen nuestros bosques",
+lp_users:"OrbitaFire está diseñado para apoyar a guardaparques, brigadas comunitarias y responsables de vigilancia forestal en el Perú, facilitando la identificación de zonas con actividad de fuego inusual y la planificación preventiva.",
+lp_b1_t:"Identifica dónde prestar atención",lp_b1:"Explora reservas naturales y reconoce sectores con actividad de fuego elevada.",
+lp_b2_t:"Anticipa temporadas críticas",lp_b2:"Descubre en qué meses se concentra históricamente la actividad de fuego.",
+lp_b3_t:"Reconoce actividad fuera de lo habitual",lp_b3:"Compara las detecciones actuales con registros anteriores y localiza zonas que merecen verificación."});

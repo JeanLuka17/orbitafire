@@ -14,7 +14,9 @@ const Experience = (()=>{
   const t=()=>I18N[document.documentElement.lang||language];
   const make=(tag,cls)=>{const e=document.createElement(tag);e.className=cls;return e;};
   const landing=make('section','welcome');landing.id='welcome';
-  landing.innerHTML='<div class="welcome-copy"><p class="eyebrow">NASA SPACE APPS · PERU</p><h1>OrbitaFire</h1><p data-i18n="ux_intro"></p><button id="enter" class="enter" data-i18n="ux_enter"></button><small data-i18n="ux_photo"></small></div>';
+  landing.innerHTML='<div class="welcome-hero"><div class="welcome-copy"><p class="eyebrow" data-i18n="lp_eyebrow"></p><h1>OrbitaFire</h1><p class="welcome-tagline" data-i18n="lp_tagline"></p><p class="welcome-lead" data-i18n="lp_lead"></p><button id="enter" class="enter" data-i18n="ux_enter"></button><p class="welcome-source">NASA MODIS + VIIRS · 2000–2026</p><small data-i18n="ux_photo"></small></div><span class="welcome-scroll" aria-hidden="true">⌄</span></div>'
+    +'<div class="welcome-more"><h2 data-i18n="lp_users_h"></h2><p class="welcome-users" data-i18n="lp_users"></p><div class="welcome-benefits">'
+    +[1,2,3].map(i=>`<div><h3 data-i18n="lp_b${i}_t"></h3><p data-i18n="lp_b${i}"></p></div>`).join('')+'</div></div>';
   document.body.prepend(landing);
   const brand=document.querySelector('.brand'),home=document.createElement('a');home.className='brand';home.href='#landing';home.innerHTML=brand.innerHTML;brand.replaceWith(home);home.onclick=e=>{e.preventDefault();show('landing');};
   const nav=document.querySelector('nav');nav.querySelectorAll('a').forEach(e=>e.remove());
