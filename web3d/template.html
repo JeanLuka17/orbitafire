@@ -13,7 +13,7 @@
   .title { top: 14px; left: 14px; padding: 12px 16px; max-width: 360px; }
   .title h1 { font-size: 18px; margin: 0 0 2px; }
   .title p { margin: 0; color: #c3c2b7; font-size: 12.5px; }
-  .ctrl { bottom: 22px; left: 50%; transform: translateX(-50%); padding: 12px 16px; display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 28px)); }
+  .ctrl { flex-wrap:wrap; bottom: 22px; left: 50%; transform: translateX(-50%); padding: 12px 16px; display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 28px)); }
   .ctrl button { background: #f0efec; color: #0b0b0b; border: 0; border-radius: 8px; padding: 7px 12px; font: 600 13px system-ui, sans-serif; cursor: pointer; }
   .ctrl input[type=range] { flex: 1; accent-color: #eb6834; }
   .year { font-size: 30px; font-weight: 700; min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -30,12 +30,13 @@
   .maplibregl-popup-content { background: #0d1117; color: #f0efec; border-radius: 8px; font-size: 12.5px; padding: 8px 10px; }
   .maplibregl-popup-tip { border-top-color: #0d1117 !important; border-bottom-color: #0d1117 !important; }
   .maplibregl-ctrl-attrib { display: none; }
-  @media (max-width: 700px) { .title { max-width: 60%; } .fly { top: auto; bottom: 104px; right: 14px; } .legend { display: none; } }
+  @media (max-width: 700px) { .title { max-width: 55%; } .fly { top: auto; bottom: 104px; right: 14px; } .legend { display: none; } }
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div class="ui title"><h1>OrbitaFire · Peru in 3D</h1><p>Each column is a 25 km cell; its height and color show how many fire hotspots it had that year (VIIRS-equivalent, harmonized from NASA MODIS + VIIRS). Drag to rotate, scroll to zoom.</p></div>
+<div class="ui title" style="top:120px;font-size:12px" id="history-stats"></div>
 <div class="ui fly">
   <button data-fly="peru">Peru</button>
   <button data-fly="amk">Amarakaeri (Madre de Dios)</button>
@@ -44,12 +45,13 @@
 </div>
 <div class="ui legend"><b>Hotspots per cell in the year</b><div class="ramp"></div><div class="row"><span>1</span><span>100</span><span>1,000+</span></div><div style="margin-top:6px"><span class="sw"></span>Protected areas (SERNANP)</div></div>
 <div class="ui ctrl">
-  <button id="play">▶ Play</button>
-  <input id="slider" type="range" min="2001" max="2026" step="1" value="2024" aria-label="Year">
+  <button id="previous">←</button><button id="next">→</button><select id="speed" aria-label="Speed"><option value="1500">0.6×</option><option value="900" selected>1×</option><option value="400">2×</option></select><select id="history-month" aria-label="Month"></select><button id="play">▶ Play</button>
+  <input id="slider" type="range" min="2000" max="2026" step="1" value="2000" aria-label="Year">
   <div class="year" id="year">2024</div>
   <div class="tag" id="tag">VIIRS observed</div>
 </div>
 <div class="ui credits">Fire data: NASA FIRMS (MODIS C6.1, VIIRS C2) · Imagery: NASA GIBS Blue Marble · Terrain: AWS Terrain Tiles (Mapzen; SRTM/NASA and others) · Protected areas: SERNANP · Boundaries: geoBoundaries · <a href="https://github.com/JeanLuka17/orbitafire">OrbitaFire</a></div>
+<script src="i18n.js"></script>
 <script>/*MAPLIBRE_JS*/</script>
 <script>
 const DATA = /*DATA*/;
@@ -61,7 +63,8 @@ const DATA = /*DATA*/;
     geometry: { type: "Polygon", coordinates: [[[c.lo - RES / 2 + PAD, c.la - RES / 2 + PAD], [c.lo + RES / 2 - PAD, c.la - RES / 2 + PAD], [c.lo + RES / 2 - PAD, c.la + RES / 2 - PAD], [c.lo - RES / 2 + PAD, c.la + RES / 2 - PAD], [c.lo - RES / 2 + PAD, c.la - RES / 2 + PAD]]] } })) };
   const setYear = y => {
     const k = YEARS.indexOf(y);
-    cells.features.forEach(f => { f.properties.n = DATA.cells[f.properties.i].y[k]; });
+    const mo=+(document.getElementById('history-month').value||0);
+    cells.features.forEach(f => {const c=DATA.cells[f.properties.i];f.properties.n=mo?(c.m[DATA.months.indexOf(`${y}-${String(mo).padStart(2,'0')}`)]??0):c.y[k];});
     if (map.getSource("cells")) map.getSource("cells").setData(cells);
     document.getElementById("year").textContent = y;
     document.getElementById("tag").textContent = y < 2012 ? "Reconstructed from MODIS (harmonized)" : y === 2026 ? "VIIRS observed · Jan–Oct" : "VIIRS observed";
@@ -112,22 +115,34 @@ const DATA = /*DATA*/;
     map.getCanvas().style.cursor = "pointer";
     const f = e.features[0], c = DATA.cells[f.properties.i], y = +document.getElementById("slider").value;
     const typical = [...c.y.slice(YEARS.indexOf(2012), YEARS.indexOf(2025) + 1)].sort((a, b) => a - b)[7];
-    popup.setLngLat(e.lngLat).setHTML(`<b>${y}: ${Math.round(f.properties.n).toLocaleString()} hotspots</b><br>Typical year (2012–2025 median): ${Math.round(typical).toLocaleString()}<br><span style="color:#c3c2b7">${c.la.toFixed(2)}°, ${c.lo.toFixed(2)}°</span>`).addTo(map);
+    popup.setLngLat(e.lngLat).setHTML(`<b>${y}: ${Math.round(f.properties.n).toLocaleString()} hotspots</b><br>${I18N[lang].ux_total} · ${y<2012?I18N[lang].ch_reco:I18N[lang].ch_obs}<br><span style="color:#c3c2b7">${c.la.toFixed(2)}°, ${c.lo.toFixed(2)}°</span>`).addTo(map);
   });
   map.on("mouseleave", "cells", () => { map.getCanvas().style.cursor = ""; popup.remove(); });
   map.on("click", "areas-fill", e => {
-    const p = e.features[0].properties;
+    const p = e.features[0].properties;window.parent.postMessage({type:"orbita-choose",name:p.name},location.origin);
     new maplibregl.Popup({ offset: 8 }).setLngLat(e.lngLat).setHTML(`<b>${p.cat} ${p.name}</b><br>VIIRS hotspots/yr inside: ${p.mean ?? "–"}<br>2024 vs typical: ${p.r2024 ?? "–"}×`).addTo(map);
   });
-  const slider = document.getElementById("slider");
-  slider.oninput = () => setYear(+slider.value);
-  let timer = null;
-  document.getElementById("play").onclick = ev => {
-    if (timer) { clearInterval(timer); timer = null; ev.target.textContent = "▶ Play"; return; }
-    ev.target.textContent = "❚❚ Pause";
-    if (+slider.value >= 2026) slider.value = 2001;
-    timer = setInterval(() => { let y = +slider.value + 1; if (y > 2026) { clearInterval(timer); timer = null; ev.target.textContent = "▶ Play"; return; } slider.value = y; setYear(y); }, 900);
-  };
+  const slider=document.getElementById('slider'),month=document.getElementById('history-month');
+  let lang='en',timer=null;
+  function tr(){const t=I18N[lang];document.documentElement.lang=lang;document.querySelector('.title h1').textContent=t.ux_history;document.querySelector('.title p').textContent=t.ux_3d_intro;slider.setAttribute('aria-label',t.ux_year);month.setAttribute('aria-label',t.fc_month);document.getElementById('previous').setAttribute('aria-label',t.ux_previous);document.getElementById('next').setAttribute('aria-label',t.ux_next);document.getElementById('speed').setAttribute('aria-label',t.ux_speed);document.querySelector('.legend b').textContent=t.ob_axis;month.options[0].textContent=t.ux_annual;for(let i=1;i<=12;i++)month.options[i].textContent=t.months[i-1];document.getElementById('play').textContent=timer?t.ux_pause:t.ux_play;}
+  for(let i=0;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i?I18N.en.months[i-1]:I18N.en.ux_annual;month.append(o);}
+  function refresh(){const y=+slider.value,mo=+month.value,t=I18N[lang];setYear(y);
+    const values=DATA.cells.map(c=>mo?c.m[DATA.months.indexOf(`${y}-${String(mo).padStart(2,'0')}`)]:c.y[YEARS.indexOf(y)]);
+    const valid=values.filter(v=>v!=null),total=valid.reduce((a,b)=>a+b,0),peak=Math.max(...valid,0),cell=DATA.cells[values.indexOf(peak)];
+    const partial=y===2000||(!mo&&(y===2026||y===2012))||(y===2026&&mo>=11)||(y===2012&&mo===1);
+    const totals=YEARS.filter(v=>v>2000&&v<2026&&v!==2012&&v!==y).map(v=>DATA.cells.reduce((a,c)=>a+(mo?(c.m[DATA.months.indexOf(`${v}-${String(mo).padStart(2,'0')}`)]??0):c.y[YEARS.indexOf(v)]),0)).sort((a,b)=>a-b),med=totals[Math.floor(totals.length/2)];
+    document.getElementById('tag').textContent=partial?t.ux_partial:y<2012?t.ch_reco:t.ch_obs;
+    document.getElementById('history-stats').textContent=`${t.ux_total}: ${valid.length?Math.round(total).toLocaleString():'–'} · ${t.ux_typical}: ${!partial&&med>0?(total/med).toFixed(2)+'×':'–'} · ${t.ux_peak}: ${cell?cell.la.toFixed(2)+', '+cell.lo.toFixed(2):'–'}`;
+  }
+  slider.oninput=refresh;month.onchange=refresh;
+  document.getElementById('previous').onclick=()=>{slider.value=Math.max(2000,+slider.value-1);refresh();};
+  document.getElementById('next').onclick=()=>{slider.value=Math.min(2026,+slider.value+1);refresh();};
+  function stop(){clearTimeout(timer);timer=null;tr();}
+  function tick(){if(+slider.value>=2026){stop();return;}slider.value=+slider.value+1;refresh();timer=setTimeout(tick,+document.getElementById('speed').value);}
+  document.getElementById('play').onclick=()=>{if(timer){stop();return;}if(+slider.value>=2026)slider.value=2000;timer=setTimeout(tick,+document.getElementById('speed').value);tr();};
+  window.addEventListener('message',e=>{if(e.origin!==location.origin)return;if(e.data?.type==='orbita-pause'){stop();return;}if(e.data?.type!=='orbita-selection')return;lang=e.data.lang==='es'?'es':'en';tr();const loc=e.data.location;if(loc){if(loc.lat!=null)map.flyTo({center:[loc.lon,loc.lat],zoom:7});else{const f=[...DATA.areas.features,...DATA.regions.features].find(f=>f.properties.name===loc.name);if(map.getLayer('areas-line'))map.setPaintProperty('areas-line','line-color',['case',['==',['get','name'],loc.name],'#ffe18c','#4ade80']);if(f){const points=f.geometry.coordinates.flat(Infinity);const xs=points.filter((_,i)=>i%2===0),ys=points.filter((_,i)=>i%2===1);map.fitBounds([[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.max(...ys)]],{padding:70});}}}refresh();});
+  tr();map.on('load',refresh);window.parent.postMessage({type:'orbita-ready'},location.origin);
+  map.on('click','cells',e=>{const c=DATA.cells[e.features[0].properties.i];window.parent.postMessage({type:'orbita-choose',id:`cell|${c.la.toFixed(3)}_${c.lo.toFixed(3)}`},location.origin);});
   const VIEWS = {
     peru: { center: [-74.2, -9.8], zoom: 4.85, pitch: 62, bearing: -18 },
     amk: { center: [-70.9, -12.75], zoom: 7.6, pitch: 66, bearing: -30 },

@@ -8,6 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%23eb6834%22/%3E%3C/svg%3E">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="workspace.css">
 </head>
 <body>
 <!-- OrbitaFire website. Developed by the OrbitaFire team with AI assistance (Claude, Anthropic). See README > "AI assistance". -->
@@ -44,6 +45,7 @@
   <div class="map-ui">
     <div class="map-controls" role="group" aria-label="Map layers">
       <span class="ctl-label" data-i18n="color_by">Color cells by</span>
+      <label><span data-i18n="ob_map_scope">Map selection</span><select id="map-scope"><option value="auto" data-i18n="ob_auto">Protected area or cell</option><option value="region" data-i18n="ob_region">Department</option><option value="cell" data-i18n="ob_cell">Grid cell</option></select></label>
       <div class="seg" id="mode">
         <button data-mode="anom" class="on" data-i18n="mode_anom">2024 vs typical season</button>
         <button data-mode="dens" data-i18n="mode_dens">Average fire per year</button>
@@ -61,11 +63,51 @@
   </div>
 </section>
 
+<section id="fire-calendar" class="wrap">
+  <h2 data-i18n="fc_h">Fire Activity Calendar</h2>
+  <p class="sub" data-i18n="fc_sub">Monthly VIIRS-equivalent activity for Peru. Pre-2012 values are model reconstructions.</p>
+  <div class="calendar-controls">
+    <label><span data-i18n="fc_location">Location</span><select id="fc-location"><option value="peru" data-i18n="fc_peru">All Peru</option></select></label>
+    <label><span data-i18n="fc_month">Month</span><select id="fc-month"></select></label>
+    <label><span data-i18n="ob_from">From year</span><select id="fc-from"></select></label>
+    <label><span data-i18n="ob_to">To year</span><select id="fc-to"></select></label>
+    <label><span data-i18n="fc_view">View</span><select id="fc-view"><option value="bars" data-i18n="ob_bars">Bars</option><option value="heat" data-i18n="ob_heat">Heatmap</option></select></label>
+    <label><span data-i18n="fc_mode">Color</span><select id="fc-mode"><option value="value" data-i18n="ob_activity">Activity</option><option value="anomaly" data-i18n="ob_anomaly">Robust anomaly</option></select></label>
+  </div>
+  <p id="calendar-context" class="note" aria-live="polite"></p>
+  <div class="chart-card"><div id="fire-calendar-chart" class="chart"></div></div>
+  <p id="calendar-detail" class="small" aria-live="polite"></p>
+  <p class="small" data-i18n="ob_legend">Blue: observed. Pale blue: reconstructed. Hatched: incomplete. Grey: missing. White dot: zero. Orange line: median. Whiskers: available 95% band.</p>
+</section>
+
+<section id="seasonal" class="wrap">
+  <h2 data-i18n="ob_seasonal_h">Seasonal Fire Activity</h2>
+  <p id="seasonal-note" class="note"></p>
+  <p id="observed-advisory" class="note" aria-live="polite"></p>
+  <div id="seasonal-chart" class="chart-card chart"></div>
+  <p id="seasonal-trend" class="small"></p>
+</section>
+
 <section id="reserves" class="wrap">
+  <h2 data-i18n="ob_territories_h">Territories Requiring Attention</h2>
+  <p class="sub" data-i18n="ob_priority_sub">Communal Reserves and buffer rings, counted separately. Choose a metric to order monitoring attention; this is not a damage assessment.</p>
+  <label><span data-i18n="ob_sort">Order by</span><select id="priority-sort"></select></label>
+  <p id="priority-period" class="note"></p>
+  <div class="table-wrap"><table id="priority-table" class="rank"></table></div>
+  <div id="territory-card" class="chart-card" aria-live="polite"></div>
   <h2 data-i18n="res_h">Peru's 11 Communal Reserves</h2>
   <p class="sub" data-i18n-html="res_sub">Communal Reserves are protected areas <b>co-managed</b> by SERNANP and the Indigenous organizations of the native communities around them. VIIRS hotspots (2012–Oct 2026) inside each reserve and its buffer zone. Click a row to see it on the map.</p>
   <div class="spotlight" id="spotlight"></div>
   <div class="table-wrap"><table id="rank" class="rank"></table></div>
+</section>
+
+<section id="anomalies" class="wrap">
+  <h2 data-i18n="ob_anomalies_h">Activity anomalies</h2>
+  <p class="sub" data-i18n="ob_anomaly_rules">Intensity: robust z ≥ 3.5. Off-season: z ≥ 2 and monthly baseline ≤ 10% of the seasonal peak. First Recorded Detection uses only observed counts after at least 60 complete months without detections.</p>
+  <p class="note" data-i18n="ob_limits">Hotspots do not establish burned area, damage to communities or biodiversity loss. An anomaly does not confirm a fire. A first recorded detection is relative to this observation record, not proof that fire never occurred before.</p>
+  <p id="anomaly-context" class="small"></p>
+  <div class="table-wrap"><table id="anomaly-table" class="rank"></table></div>
+  <p class="small" data-i18n="ob_daily">Daily anomalies are not exported yet. They require observed detections aggregated by date and territory, observation coverage and a comparable daily baseline; monthly model estimates must never be divided into daily events.</p>
 </section>
 
 <section id="method" class="wrap">
@@ -126,6 +168,8 @@
 <div id="tip" class="tip" role="tooltip" hidden></div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="i18n.js"></script>
+<script src="observatory.js"></script>
+<script src="experience.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

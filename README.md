@@ -76,6 +76,39 @@ SERNANP layers are downloaded from SERNANP's public download service (`geoservic
 
 `docs/3d.html` is a self-contained 3D view built by `python scripts/06_build_3d.py` with MapLibre GL JS (BSD-3). It shows fire columns per cell and year over NASA GIBS Blue Marble imagery and AWS Terrain Tiles relief, with a year slider. To preview the site: `cd docs && python -m http.server`. To publish it: enable GitHub Pages from `main` / `docs`.
 
+## Monthly observatory
+
+The 2D map now shares its location selection with the Fire Activity Calendar,
+year/month comparisons, seasonal advisories, territorial attention table and
+monthly anomaly indicators. Select protected area/cell/department in the map
+control, or choose a location in the calendar. The territorial table keeps reserve
+interiors and buffer rings separate. EN/ES and bar/heatmap views are available.
+
+Build the monthly datasets from the existing pipeline outputs without rerunning
+or refitting the harmonization model:
+
+```bash
+python scripts/05_build_web.py --observatory-only
+python scripts/08_build_experience.py
+python scripts/06_build_3d.py
+python -m pytest -q tests
+python -m http.server 8765 --directory docs --bind 127.0.0.1
+```
+
+Open `http://127.0.0.1:8765`. The observatory uses `docs/data/observatory.json`
+and location bundles in `docs/data/observatory/`; cell data loads in blocks of 50.
+The full step-05 export also generates these files when its external layers are
+available. `--observatory-only` reuses existing display outlines and CSV/Parquet.
+
+Regional totals are approximate whole-grid-cell assignments using simplified
+boundaries. Protected-area monthly counts reuse the existing original-polygon
+results and do not include pre-2012 reconstructed grid estimates. Incomplete
+January 2012 and November 2026 are identified and excluded from comparisons.
+Daily anomalies and recomputing exact protected-area/community intersections
+require further preparation/original geographical inputs. See
+[data availability and methods](docs/DATA_AVAILABILITY.md) for exact missing
+filenames, provenance, statistical definitions, coverage and limitations.
+
 ## AI assistance
 
 In line with the NASA Space Apps 2026 Project Submission Guide, we disclose that this project was developed **with AI assistance**:
@@ -90,3 +123,45 @@ We acknowledge the use of data and/or imagery from NASA's Fire Information for R
 ## License
 
 Code: MIT (see `LICENSE`). Data: NASA FIRMS (open data).
+
+
+## Interactive experience
+
+The initial welcome screen opens Control. Geographic search includes existing
+public territory/community names; community search navigates to a coarse grid
+cell, not a newly inferred community polygon. Historical/observed/anomaly layers
+use `control.json`, repacked from the verified observatory series by step 08.
+The contextual panel retains comparisons, individual year selection, seasonal
+statistics and detailed territorial/anomaly tables. About / Methodology retains
+the existing scientific validation. Historical Explorer embeds the existing
+MapLibre view and supports annual/monthly values, previous/next, speed and playback.
+The 2000 record starts in November; partial periods have no full-year ratio.
+Daily comparisons remain unavailable pending the documented daily export.
+
+Landing photograph: USDA Forest Service / Henny Jungemann, public domain.
+See `docs/assets/CREDITS.md`. It illustrates a Minnesota forest fire, not current
+activity in Peru. All image assets are local WebP derivatives.
+
+
+## Contextual comparisons and daily observations
+
+The OrbitaFire logo returns to the welcome view using same-page history; browser
+Back restores the previous view. Location selection initially shows a short status
+for the selected month/year and separately identifies the latest complete observed
+period. View Details compares chosen years; View History shows the full monthly
+record. Both use a fixed red count palette (log1p scale, darkest at the actual maximum of the harmonized national record).
+
+Run `python scripts/09_build_comparisons.py` to generate `daily.json`, lazy daily
+cell/national shards and `sectors.json` from the cleaned observations and existing
+geometries. Daily/weekly comparisons use only the S-NPP/NOAA-20 observed reference
+from 2012-01-20 onward; no monthly prediction is split into days. The latest day is
+excluded as potentially incomplete. A zero denotes no reference detection in the
+record, not proof of observation visibility. Weeks are calendar-month blocks
+1–7, 8–14, 15–21, 22–28, 29–month-end (final block can be shorter), not ISO weeks.
+Daily/weekly reserve or department aggregates remain unavailable; controls are
+disabled rather than attributing coarse grid data to original polygons.
+
+Most Active Sector is approximate and uses only whole cells contained in the
+available display polygon with a conservative 0.005° inner margin. Original
+boundaries are missing; this is not a verified ignition location or risk score.
+No marker is produced for zero, unavailable or spatially unverifiable sectors.

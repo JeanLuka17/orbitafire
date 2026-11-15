@@ -93,6 +93,24 @@ table.rank { border-collapse: collapse; width: 100%; font-size: 13.5px; }
 .team span { color: var(--ink2); font-size: 14px; }
 .credits li { margin: 6px 0; }
 .foot { padding: 20px; border-top: 1px solid var(--border); margin-top: 30px; }
+.calendar-controls { display:flex; flex-wrap:wrap; gap:12px; margin:14px 0; }
+.calendar-controls label { display:grid; gap:4px; color:var(--ink2); font-size:13px; }
+.calendar-controls select { min-width:150px; padding:8px 10px; border:1px solid var(--axis); border-radius:6px; background:var(--surface); color:var(--ink); font:inherit; }
+#fire-calendar-chart { overflow-x:auto; }
+#fire-calendar-chart svg { display:block; width:100%; min-width:520px; }
+.map-controls select, #priority-sort { font:inherit; padding:6px; border:1px solid var(--axis); border-radius:5px; background:var(--surface); max-width:100%; }
+.calendar-controls select { max-width:min(100%, 340px); }
+#seasonal-chart { overflow-x:auto; }
+#seasonal-chart svg { width:100%; min-width:520px; display:block; }
+.territory-link { font:inherit; color:var(--blue); background:none; border:0; padding:4px 0; text-align:left; cursor:pointer; text-decoration:underline; }
+#territory-card { margin-top:16px; padding:16px; }
+#priority-table small { white-space:nowrap; }
+#fire-calendar-chart [role=button]:focus { outline:2px solid var(--ink); outline-offset:-2px; }
+@media (max-width:600px) {
+  .calendar-controls label { width:100%; }
+  .calendar-controls select { width:100%; max-width:100%; }
+  .chart-card { min-width:0; }
+}
 
 .tip { position: fixed; pointer-events: none; z-index: 2000; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.4; padding: 6px 9px; border-radius: 6px; max-width: 240px; }
 

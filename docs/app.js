@@ -131,6 +131,8 @@
       tip: `${t.months[c.mo - 1]}: <b>${(c.share * 100).toFixed(1)}%</b> (${(c.p10 * 100).toFixed(1)}–${(c.p90 * 100).toFixed(1)}%)` })), { H: 250, W: 520, ticks: 5, f: v => `${v}%` });
   }
 
+  function fireCalendar() { Observatory.render(); }
+
   // ---------- status cards ----------
   function status() {
     const t = T(), st = D.status, mo = st.last_complete_month.split("-");
@@ -170,7 +172,7 @@
       cellLayer.addLayer(c.rect);
     });
     const style = kind => f => kind === "area" ? { color: "#006300", weight: 1.4, fillColor: "#008300", fillOpacity: .06 } : { color: "#006300", weight: 1, dashArray: "4 3", fill: false };
-    areaLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area") }, { style: style("area"), interactive: false }).addTo(map);
+    areaLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area") }, { style: style("area"), interactive: true, bubblingMouseEvents:false, onEachFeature:(f,l)=>{l.bindTooltip(f.properties.name);l.on('mouseover',()=>l.setStyle({weight:3}));l.on('mouseout',()=>l.setStyle({weight:1.4}));l.on('click',e=>{map.fitBounds(l.getBounds());select(e.latlng.lat,e.latlng.lng,f.properties.id);});} }).addTo(map);
     bufLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "buffer") }, { style: style("buffer"), interactive: false }).addTo(map);
     commLayer = L.layerGroup(D.comm.map(c => L.circleMarker([c[0], c[1]], { radius: 2.6, color: "#fcfcfb", weight: .6, fillColor: "#6250d6", fillOpacity: .9, interactive: false })));
     map.on("click", e => select(e.latlng.lat, e.latlng.lng));
@@ -180,6 +182,17 @@
     $("lyr-base").onchange = e => e.target.checked ? baseLayer.addTo(map) : map.removeLayer(baseLayer);
     document.querySelectorAll("#mode button").forEach(b => b.onclick = () => { S.mode = b.dataset.mode; document.querySelectorAll("#mode button").forEach(x => x.classList.toggle("on", x === b)); paintCells(); legend(); });
     paintCells();
+    window.addEventListener('resize',()=>map.invalidateSize());let entered=false;window.addEventListener('orbita-enter',()=>{map.invalidateSize();if(!entered){map.fitBounds(L.geoJSON(D.regions).getBounds(),{paddingTopLeft:[30,120],paddingBottomRight:[30,50]});entered=true;}});
+    let sectorMarker;window.addEventListener('orbita-sector',e=>{if(sectorMarker)map.removeLayer(sectorMarker);const d=e.detail;if(!d)return;sectorMarker=L.circleMarker([d.lat,d.lon],{radius:10,color:'#691724',fillColor:'#fff',fillOpacity:1,weight:4}).addTo(map).bindTooltip(T().nx_sector).on('click',()=>select(d.lat,d.lon,d.id));if(d.focus)map.flyTo([d.lat,d.lon],9);});
+    let selectionOutline;
+    window.addEventListener('orbita-highlight',e=>{const loc=e.detail;if(selectionOutline)map.removeLayer(selectionOutline);const f=D.areaById[loc.id] || (loc.kind==='region'?D.regions.features.find(f=>f.properties.name===loc.name):null);if(f)selectionOutline=L.geoJSON(f,{interactive:false,style:{color:'#ffe18c',weight:4,fill:false}}).addTo(map);else if(loc.kind==='cell')selectionOutline=L.rectangle([[loc.lat-.125,loc.lon-.125],[loc.lat+.125,loc.lon+.125]],{interactive:false,color:'#111',weight:3,fill:false}).addTo(map);});
+    window.addEventListener('orbita-paint',e=>{
+      const {control,month,year,layer}=e.detail,idx=control.months.indexOf(`${year}-${String(month).padStart(2,'0')}`),lookup=new Map(control.cells.map(c=>[`${c.lat.toFixed(3)}_${c.lon.toFixed(3)}`,c]));
+      D.cells.cells.forEach(c=>{const d=lookup.get(`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`),v=layer==='historical'?d?.season[month-1]:layer==='observed'?d?.o[idx]:d?.z[idx];
+        const color=v==null?'#a9ada9':layer==='anomaly'?ramp(DIV,(Math.max(-3.5,Math.min(3.5,v))+3.5)/7):window.OrbitaPalette.activity(v);
+        c.rect.setStyle({fillColor:color,fillOpacity:.8});});
+      $('legend').dataset.mode=layer;$('legend').innerHTML=`<b>${layer==='anomaly'?T().ob_anomalies_h:T().nx_fire_activity}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${(layer==='anomaly'?DIV:window.OrbitaPalette.colors).join(',')})"></span><span class="legend-ticks">${layer==='anomaly'?'<span>−3.5</span><span>0</span><span>2</span><span>3.5+</span>':`<span>0</span><span style="left:${100*Math.log1p(10)/Math.log1p(window.OrbitaPalette.max)}%">10</span><span style="left:${100*Math.log1p(1000)/Math.log1p(window.OrbitaPalette.max)}%">1k</span><span>${window.OrbitaPalette.max.toLocaleString(undefined,{maximumFractionDigits:1})}</span>`}</span><small>${T().months[month-1]} · ${layer==='historical'?T().ux_historical:year+' '+(layer==='observed'?T().ux_observed:T().ob_anomalies_h)} · ${T().nx_grey}</small>`;
+    });
   }
   function paintCells() {
     D.cells.cells.forEach(c => { const col = S.mode === "anom" ? ((c.dens >= 2 || (c.y[D.cells.years.indexOf(2024)] >= 10)) ? colorAnom(c.r) : null) : colorDens(c.dens);
@@ -197,9 +210,15 @@
   // ---------- selection panel ----------
   function select(lat, lon, prefer) {
     S.sel = { lat, lon, prefer };
+    const res=D.cells.res,key=`${(Math.floor(lat/res)*res+res/2).toFixed(3)}_${(Math.floor(lon/res)*res+res/2).toFixed(3)}`;
+    const scope=$("map-scope").value;
+    const region=D.regions.features.find(f=>inGeom(lon,lat,f.geometry));
+    const unit=D.areas.features.find(f=>f.properties.kind==="area" && inGeom(lon,lat,f.geometry)) || D.areas.features.find(f=>inGeom(lon,lat,f.geometry));
+    const id=prefer || (scope==="region" && region ? `region|${region.properties.name}` : scope==="auto" && unit ? unit.properties.id : `cell|${key}`);
+    Observatory.select(id);
     if (selMarker) map.removeLayer(selMarker);
     selMarker = L.circleMarker([lat, lon], { radius: 7, color: "#0b0b0b", weight: 2, fill: false, interactive: false }).addTo(map);
-    renderPanel();
+    renderPanel(); if(D.peru)fireCalendar();
   }
   function renderPanel() {
     const t = T(), p = $("panel");
@@ -271,16 +290,24 @@
     $("lang").textContent = LANG === "en" ? "ES" : "EN";
     document.querySelectorAll("[data-i18n]").forEach(e => { const v = T()[e.dataset.i18n]; if (typeof v === "string") e.textContent = v; });
     document.querySelectorAll("[data-i18n-html]").forEach(e => { const v = T()[e.dataset.i18nHtml]; if (typeof v === "string") e.innerHTML = v; });
-    status(); legend(); renderPanel(); ranking(); chartYears(); chartRatio(); chartCV(); chartCal();
+    status(); legend(); renderPanel(); ranking(); chartYears(); chartRatio(); chartCV(); chartCal(); if(D.peru) fireCalendar(); Experience.translate(); Experience.paint();
   }
 
   // ---------- boot ----------
   const files = { status: "status.json", peru: "peru.json", cells: "cells.json", areas: "areas.json", series: "areas_series.json", comm: "communities.json", regions: "regions.json", ranking: "ranking.json" };
-  Promise.all(Object.entries(files).map(([k, f]) => fetch(`data/${f}`).then(r => r.json()).then(j => D[k] = j))).then(() => {
+  Promise.all(Object.entries(files).map(([k, f]) => fetch(`data/${f}`).then(r => { if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`); return r.json(); }).then(j => D[k] = j))).then(async () => {
     D.areaById = {}; D.areas.features.forEach(f => { f.bb = bbox(f.geometry); D.areaById[f.properties.id] = f; });
     D.cellIdx = {}; D.cells.cells.forEach(c => D.cellIdx[`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`] = c);
     try { const saved = localStorage.getItem("orbitafire-lang"); if (saved === "es" || saved === "en") LANG = saved; } catch (e) { /* storage unavailable */ }
-    initMap(); applyLang();
+    initMap();
+    await Observatory.init({D,S,T,fmt,esc,svg,add,yAxis,niceMax,showTip,hideTip,badge,ramp,SEQ,DIV,
+      focus: loc => {
+        const feature=loc.kind==="region" ? D.regions.features.find(f=>f.properties.name===loc.name) : D.areaById[loc.id];
+        if(feature){ const bounds=L.geoJSON(feature).getBounds(); map.fitBounds(bounds,{padding:[20,20]}); const center=bounds.getCenter();select(center.lat,center.lng,loc.id); }
+        else if(loc.kind==="cell") select(loc.lat,loc.lon,loc.id);
+        else {S.sel=null;renderPanel();map.fitBounds(L.geoJSON(D.regions).getBounds());}
+      }});
+    applyLang();
     $("lang").onclick = () => { LANG = LANG === "en" ? "es" : "en"; try { localStorage.setItem("orbitafire-lang", LANG); } catch (e) { /* ignore */ } applyLang(); };
   }).catch(err => { $("panel").innerHTML = `<p>Could not load data (${esc(err.message)}). Serve this folder over http(s).</p>`; console.error(err); });
 })();
