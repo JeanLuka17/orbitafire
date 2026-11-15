@@ -37,6 +37,7 @@
   .maplibregl-popup-tip { border-top-color: #0d1117 !important; border-bottom-color: #0d1117 !important; }
   .maplibregl-ctrl-attrib { display: none; }
   .seg + .seg { margin-left: 6px; }
+  .seg-label { display: block; font-size: 11px; color: #c3c2b7; margin: 10px 0 -6px; }
   .legend .note { margin-top: 6px; color: #f0efec; max-width: 220px; font-size: 11.5px; }
   .legend .sw.az { height: 0; background: none; border-top: 2px solid #67e8f9; }
   .legend .sw.al { height: 8px; width: 12px; background: none; border: 2px solid #ff2a2a; box-shadow: 0 0 6px #ff2a2a; }
@@ -48,7 +49,7 @@
 </head>
 <body>
 <div id="map"></div>
-<div class="ui title"><h1>OrbitaFire · Peru in 3D</h1><p>Each column is a 25 km cell; its height and color show how many fire hotspots it had that year (VIIRS-equivalent, harmonized from NASA MODIS + VIIRS). Drag to rotate, scroll to zoom.</p><div class="seg" id="mode"><button data-mode="count" class="on">Hotspots</button><button data-mode="anom">vs typical</button></div><div class="seg" id="focus"><button data-focus="1" class="on">Amazon</button><button data-focus="0">All Peru</button></div><br><div class="seg" id="view"><button data-view="cols" class="on">Columns</button><button data-view="heat">Smooth</button><button data-view="both">Both</button></div><div class="alert" id="alert"></div><p id="history-stats" style="margin-top:10px;color:#f0efec;font-size:12px"></p></div>
+<div class="ui title"><h1>OrbitaFire · Peru in 3D</h1><p>Each column is a 25 km cell; its height and color show how many fire hotspots it had that year (VIIRS-equivalent, harmonized from NASA MODIS + VIIRS). Drag to rotate, scroll to zoom.</p><span class="seg-label" id="lbl-show">Show</span><div class="seg" id="mode"><button data-mode="count" class="on">Hotspots</button><button data-mode="anom">vs typical</button></div><span class="seg-label" id="lbl-area">Area</span><div class="seg" id="focus"><button data-focus="1" class="on">Amazon</button><button data-focus="0">All Peru</button></div><br><span class="seg-label" id="lbl-view">View</span><div class="seg" id="view"><button data-view="cols" class="on">Columns</button><button data-view="heat">Smooth</button><button data-view="both">Both</button></div><div class="alert" id="alert"></div><p id="history-stats" style="margin-top:10px;color:#f0efec;font-size:12px"></p></div>
 <div class="ui fly">
   <button data-fly="peru" id="fly-peru">Peru</button>
   <button data-fly="amk">Amarakaeri (Madre de Dios)</button>
@@ -63,7 +64,7 @@
   <div class="tag" id="tag">VIIRS observed</div>
 </div>
 <div class="ui credits">Fire data: NASA FIRMS (MODIS C6.1, VIIRS C2) · Imagery: NASA GIBS Blue Marble; Sentinel-2 cloudless (<a href="https://s2maps.eu">s2maps.eu</a>) by EOX IT Services GmbH, contains modified Copernicus Sentinel data 2016 · Terrain: AWS Terrain Tiles (Mapzen; SRTM/NASA and others) · Protected areas: SERNANP · Boundaries: geoBoundaries · <a href="https://github.com/JeanLuka17/orbitafire">OrbitaFire</a></div>
-<script src="i18n.js"></script>
+<script src="i18n.js?v=20261115i"></script>
 <script>/*MAPLIBRE_JS*/</script>
 <script>
 const DATA = /*DATA*/;
@@ -195,7 +196,7 @@ const DATA = /*DATA*/;
   });
   const slider=document.getElementById('slider'),month=document.getElementById('history-month');
   let timer=null;
-  function tr(){const t=I18N[lang];document.documentElement.lang=lang;document.querySelector('.title h1').textContent=t.ux_history;document.querySelector('.title p').textContent=t.ux_3d_intro;slider.setAttribute('aria-label',t.ux_year);month.setAttribute('aria-label',t.fc_month);document.getElementById('previous').setAttribute('aria-label',t.ux_previous);document.getElementById('next').setAttribute('aria-label',t.ux_next);document.getElementById('speed').setAttribute('aria-label',t.ux_speed);document.querySelector('.legend b').textContent=t.ob_axis;month.options[0].textContent=t.ux_annual;for(let i=1;i<=12;i++)month.options[i].textContent=t.months[i-1];document.getElementById('play').textContent=timer?t.ux_pause:t.ux_play;const b=document.querySelectorAll('#mode button');b[0].textContent=t.x3_count;b[1].textContent=t.x3_anom;document.getElementById('leg-area').textContent=t.x3_leg_area;document.getElementById('leg-buf').textContent=t.x3_leg_buf;document.getElementById('fly-peru').textContent=t.x3_peru;document.getElementById('fly-andes').textContent=t.x3_andes;const f=document.querySelectorAll('#focus button');f[0].textContent=t.x3_amz;f[1].textContent=t.x3_all;const v=document.querySelectorAll('#view button');v[0].textContent=t.x3_cols;v[1].textContent=t.x3_heat;v[2].textContent=t.x3_both;document.getElementById('leg-az').textContent=t.x3_leg_az;document.getElementById('leg-al').textContent=t.x3_leg_al;document.getElementById('leg-note').textContent=t.x3_note;legend();alertBox();}
+  function tr(){const t=I18N[lang];document.documentElement.lang=lang;document.querySelector('.title h1').textContent=t.ux_history;document.querySelector('.title p').textContent=t.ux_3d_intro;slider.setAttribute('aria-label',t.ux_year);month.setAttribute('aria-label',t.fc_month);document.getElementById('previous').setAttribute('aria-label',t.ux_previous);document.getElementById('next').setAttribute('aria-label',t.ux_next);document.getElementById('speed').setAttribute('aria-label',t.ux_speed);document.querySelector('.legend b').textContent=t.ob_axis;month.options[0].textContent=t.ux_annual;for(let i=1;i<=12;i++)month.options[i].textContent=t.months[i-1];document.getElementById('play').textContent=timer?t.ux_pause:t.ux_play;const b=document.querySelectorAll('#mode button');b[0].textContent=t.x3_count;b[1].textContent=t.x3_anom;document.getElementById('leg-area').textContent=t.x3_leg_area;document.getElementById('leg-buf').textContent=t.x3_leg_buf;document.getElementById('fly-peru').textContent=t.x3_peru;document.getElementById('fly-andes').textContent=t.x3_andes;const f=document.querySelectorAll('#focus button');f[0].textContent=t.x3_amz;f[1].textContent=t.x3_all;const v=document.querySelectorAll('#view button');v[0].textContent=t.x3_cols;v[1].textContent=t.x3_heat;v[2].textContent=t.x3_both;document.getElementById('leg-az').textContent=t.x3_leg_az;document.getElementById('leg-al').textContent=t.x3_leg_al;document.getElementById('leg-note').textContent=t.x3_note;['show','area','view'].forEach(k=>document.getElementById('lbl-'+k).textContent=t['x3_lbl_'+k]);[...b].forEach((e,i)=>e.title=[t.x3_tip_count,t.x3_tip_anom][i]);[...f].forEach((e,i)=>e.title=[t.x3_tip_amz,t.x3_tip_all][i]);[...v].forEach((e,i)=>e.title=[t.x3_tip_cols,t.x3_tip_heat,t.x3_tip_both][i]);legend();alertBox();}
   for(let i=0;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i?I18N.en.months[i-1]:I18N.en.ux_annual;month.append(o);}
   function refresh(){const y=+slider.value,mo=+month.value,t=I18N[lang];setYear(y);
     const values=DATA.cells.map(c=>mo?c.m[DATA.months.indexOf(`${y}-${String(mo).padStart(2,'0')}`)]:c.y[YEARS.indexOf(y)]);
@@ -203,7 +204,7 @@ const DATA = /*DATA*/;
     const partial=y===2000||(!mo&&(y===2026||y===2012))||(y===2026&&mo>=11)||(y===2012&&mo===1);
     const totals=YEARS.filter(v=>v>2000&&v<2026&&v!==2012&&v!==y).map(v=>DATA.cells.reduce((a,c)=>a+(mo?(c.m[DATA.months.indexOf(`${v}-${String(mo).padStart(2,'0')}`)]??0):c.y[YEARS.indexOf(v)]),0)).sort((a,b)=>a-b),med=totals[Math.floor(totals.length/2)];
     document.getElementById('tag').textContent=partial?t.ux_partial:y<2012?t.ch_reco:t.ch_obs;
-    document.getElementById('history-stats').textContent=`${t.ux_total}: ${valid.length?Math.round(total).toLocaleString():'–'} · ${t.ux_typical}: ${!partial&&med>0?(total/med).toFixed(2)+'×':'–'} · ${t.ux_peak}: ${cell?cell.la.toFixed(2)+', '+cell.lo.toFixed(2):'–'}`;
+    document.getElementById('history-stats').textContent=t.x3_stats(valid.length?Math.round(total).toLocaleString(lang==='es'?'es-PE':'en-US'):'–',!partial&&med>0?(+(total/med).toFixed(1)).toLocaleString(lang==='es'?'es-PE':'en-US'):null,cell?cell.la.toFixed(2)+', '+cell.lo.toFixed(2):'–',mo?t.months[mo-1]:null);
   }
   function alertBox(){const el=document.getElementById('alert'),t=I18N[lang],y=+slider.value,mo=+month.value;if(!el||!t.x3_alert)return;
     if(isPartial(y,mo)){el.className='alert on';el.style.background='rgba(55,65,81,.6)';el.style.borderColor='#6b7280';el.innerHTML=t.x3_alert_partial;return;}

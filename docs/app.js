@@ -158,10 +158,15 @@
   function bbox(g) { let a = [180, 90, -180, -90]; const walk = c => typeof c[0] === "number" ? (a = [Math.min(a[0], c[0]), Math.min(a[1], c[1]), Math.max(a[2], c[0]), Math.max(a[3], c[1])]) : c.forEach(walk); walk(g.coordinates); return a; }
 
   // ---------- map ----------
-  let map, cellLayer, areaLayer, bufLayer, commLayer, baseLayer, selMarker;
+  let map, cellLayer, areaLayer, bufLayer, commLayer, baseLayer, satLayer, ptsLayer, ptsData, selMarker;
   function initMap() {
     map = L.map("leaflet", { preferCanvas: true, zoomSnap: 0.25, minZoom: 4, maxBounds: [[-22, -86], [3, -64]] }).setView([-9.3, -75.3], 5);
-    baseLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12, attribution: "© OpenStreetMap contributors", opacity: .55 }).addTo(map);
+    baseLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12, attribution: "© OpenStreetMap contributors", opacity: .55 });
+    // satellite background: NASA GIBS Blue Marble (to zoom 8), Sentinel-2 cloudless by EOX for close-ups
+    satLayer = L.layerGroup([
+      L.tileLayer("https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_ShadedRelief_Bathymetry/default/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpeg", { maxNativeZoom: 8, maxZoom: 12, attribution: "Imagery: NASA GIBS (Blue Marble)" }),
+      L.tileLayer("https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless_3857/default/g/{z}/{y}/{x}.jpg", { minZoom: 9, maxZoom: 12, attribution: "Sentinel-2 cloudless by EOX (s2maps.eu; modified Copernicus Sentinel data 2016)" })]).addTo(map);
+    S.base = "sat";
     const regLayer = L.geoJSON(D.regions, { style: { color: "#898781", weight: .8, fill: false }, interactive: false }).addTo(map);
     map.fitBounds(regLayer.getBounds(), { padding: [10, 10] });
     cellLayer = L.layerGroup().addTo(map);
@@ -182,6 +187,7 @@
     $("lyr-buffers").onchange = e => { [bufCase, bufLayer].forEach(l => e.target.checked ? l.addTo(map) : map.removeLayer(l)); };
     $("lyr-comm").onchange = e => e.target.checked ? commLayer.addTo(map) : map.removeLayer(commLayer);
     $("lyr-base").onchange = e => e.target.checked ? baseLayer.addTo(map) : map.removeLayer(baseLayer);
+    layerPanel();
     document.querySelectorAll("#mode button").forEach(b => b.onclick = () => { S.mode = b.dataset.mode; document.querySelectorAll("#mode button").forEach(x => x.classList.toggle("on", x === b)); paintCells(); legend(); });
     paintCells();
     window.addEventListener('resize',()=>map.invalidateSize());let entered=false;window.addEventListener('orbita-enter',()=>{map.invalidateSize();if(!entered){map.fitBounds(L.geoJSON(D.regions).getBounds(),{paddingTopLeft:[30,120],paddingBottomRight:[30,50]});entered=true;}});
@@ -192,16 +198,59 @@
       const {control,month,year,layer}=e.detail,idx=control.months.indexOf(`${year}-${String(month).padStart(2,'0')}`),lookup=new Map(control.cells.map(c=>[`${c.lat.toFixed(3)}_${c.lon.toFixed(3)}`,c]));
       const LV=window.OrbitaLevels;
       D.cells.cells.forEach(c=>{const d=lookup.get(`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`),v=layer==='historical'?d?.season[month-1]:layer==='observed'?d?.o[idx]:d?.z[idx];
-        if(v==null||!Number.isFinite(v)){c.rect.setStyle({fillColor:LV.missing,fillOpacity:.45,stroke:true,color:'#7d827e',weight:.7,dashArray:'2 3'});return;}
+        if(v==null||!Number.isFinite(v)){c.rect.setStyle({fillColor:LV.missing,fillOpacity:S.base==='sat'?.3:.45,stroke:true,color:'#7d827e',weight:.7,dashArray:'2 3'});return;}
         // anomaly layer: deviation from the cell's own history (robust z), not an absolute count
         const color=layer==='anomaly'?ramp(DIV,(Math.max(-3.5,Math.min(3.5,v))+3.5)/7):LV.color(v);
-        c.rect.setStyle({fillColor:color,fillOpacity:layer==='anomaly'?.8:(v<=0?.55:.85),stroke:false});});
+        c.rect.setStyle({fillColor:color,fillOpacity:layer==='anomaly'?.8:(v<=0?(S.base==='sat'?0:.55):.85),stroke:false});});
       const t=T(),cap=`<small>${t.months[month-1]} · ${layer==='historical'?t.ux_historical:year+' '+(layer==='observed'?t.ux_observed:t.ob_anomalies_h)}</small>`,miss=`<span class="lv-row"><i class="lv-sw lv-miss"></i>${t.lv_missing}</span>`;
       $('legend').dataset.mode=layer;
       $('legend').innerHTML=layer==='anomaly'
         ?`<b>${t.ob_anomalies_h}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${DIV.join(',')})"></span><span class="legend-ticks"><span>−3.5</span><span>0</span><span>2</span><span>3.5+</span></span><small>${t.lv_anom_help}</small>${miss}`
         :`<b>${t.lv_title}</b><div class="lv-list">${LV.colors.map((col,i)=>`<span class="lv-row"><i class="lv-sw" style="background:${col}"></i><span>${t[LV.keys[i]]}</span><em>${LV.ranges()[i]}</em></span>`).join('')}${miss}</div><small class="legend-note">${t.x3_note}</small>`;
     });
+  }
+  // ---------- layer panel (right) and recent hotspot points ----------
+  function layerPanel() {
+    const panel = document.createElement("aside"); panel.className = "layer-panel"; panel.id = "layer-panel";
+    panel.innerHTML = `<button type="button" class="lp-head" id="lp-toggle" aria-expanded="true"><span data-i18n="ly_title"></span><span class="lp-caret">▾</span></button><div class="lp-body" id="lp-body">
+      <h4 data-i18n="ly_points_h"></h4><label><input type="checkbox" id="lyr-points"> <span data-i18n="ly_points"></span></label>
+      <div class="seg lp-seg" id="pts-period"><button data-days="1" data-i18n="ly_1d"></button><button data-days="7" class="on" data-i18n="ly_7d"></button><button data-days="30" data-i18n="ly_30d"></button></div>
+      <small class="lp-info" id="pts-info"></small>
+      <h4 data-i18n="ly_cells_h"></h4><label><input type="checkbox" id="lyr-cells" checked> <span data-i18n="ly_cells"></span></label>
+      <h4 data-i18n="ly_terr_h"></h4><div id="lp-terr"></div>
+      <h4 data-i18n="ly_base_h"></h4><label><input type="radio" name="lp-base" value="sat" checked> <span data-i18n="ly_sat"></span></label><label><input type="radio" name="lp-base" value="osm"> <span data-i18n="ly_osm"></span></label><label><input type="radio" name="lp-base" value="none"> <span data-i18n="ly_none"></span></label></div>`;
+    $("workspace").append(panel);
+    ["lyr-areas", "lyr-buffers", "lyr-comm"].forEach(id => $("lp-terr").append($(id).closest("label")));
+    $("lp-terr").append($("map-scope").closest("label"));
+    document.querySelector(".layer-options")?.classList.add("lp-moved");
+    if (matchMedia("(max-width:700px)").matches) { panel.classList.add("closed"); $("lp-toggle").setAttribute("aria-expanded", "false"); }
+    $("lp-toggle").onclick = () => { const c = panel.classList.toggle("closed"); $("lp-toggle").setAttribute("aria-expanded", String(!c)); };
+    $("lyr-cells").onchange = e => e.target.checked ? cellLayer.addTo(map) : map.removeLayer(cellLayer);
+    panel.querySelectorAll("input[name=lp-base]").forEach(r => r.onchange = () => {
+      S.base = r.value; [satLayer, baseLayer].forEach(l => map.removeLayer(l));
+      if (S.base === "sat") satLayer.addTo(map); else if (S.base === "osm") baseLayer.addTo(map);
+      $("lyr-base").checked = S.base === "osm"; Experience.paint(); });
+    map.createPane("pts").style.zIndex = 450;
+    const renderer = L.canvas({ pane: "pts" });
+    S.ptsDays = 7;
+    const draw = () => {
+      if (ptsLayer) map.removeLayer(ptsLayer);
+      if (!$("lyr-points").checked || !ptsData) { ptsInfo(); return; }
+      const pts = ptsData.points.filter(p => p[2] < S.ptsDays);
+      ptsLayer = L.layerGroup(pts.map(p => L.circleMarker([p[0], p[1]], { renderer, radius: p[3] ? 3 : 2.4, color: "#ffffff", weight: .5, fillColor: p[3] ? "#ff8a00" : "#ff1a1a", fillOpacity: .95, interactive: false }))).addTo(map);
+      ptsInfo();
+    };
+    $("lyr-points").onchange = () => { if (!ptsData) fetch("data/recent_points.json").then(r => r.json()).then(d => { ptsData = d; draw(); }); else draw(); };
+    panel.querySelectorAll("#pts-period button").forEach(b => b.onclick = () => { S.ptsDays = +b.dataset.days; panel.querySelectorAll("#pts-period button").forEach(x => x.classList.toggle("on", x === b)); draw(); });
+    ptsInfo();
+  }
+  function ptsInfo() {
+    const el = $("pts-info"); if (!el) return; const t = T();
+    if (!ptsData) { el.textContent = t.ly_points_note; return; }
+    const last = new Date(ptsData.last_date + "T00:00:00Z"), first = new Date(last - (S.ptsDays - 1) * 864e5);
+    const f = d => d.toLocaleDateString(LANG === "es" ? "es-PE" : "en-US", { day: "numeric", month: "short", timeZone: "UTC" });
+    const pts = ptsData.points.filter(p => p[2] < S.ptsDays);
+    el.innerHTML = `${esc(t.ly_count(fmt(pts.length), S.ptsDays === 1 ? f(last) : `${f(first)} – ${f(last)} ${last.getUTCFullYear()}`))}<br><i class="lp-dot v"></i>VIIRS (375 m) <i class="lp-dot m"></i>MODIS (1 km) · NASA FIRMS`;
   }
   function paintCells() {
     D.cells.cells.forEach(c => { const col = S.mode === "anom" ? ((c.dens >= 2 || (c.y[D.cells.years.indexOf(2024)] >= 10)) ? colorAnom(c.r) : null) : colorDens(c.dens);
@@ -263,7 +312,7 @@
     $("lang").textContent = LANG === "en" ? "ES" : "EN";
     document.querySelectorAll("[data-i18n]").forEach(e => { const v = T()[e.dataset.i18n]; if (typeof v === "string") e.textContent = v; });
     document.querySelectorAll("[data-i18n-html]").forEach(e => { const v = T()[e.dataset.i18nHtml]; if (typeof v === "string") e.innerHTML = v; });
-    status(); legend(); renderPanel(); ranking(); chartYears(); chartRatio(); chartCV(); chartCal(); if(D.peru) fireCalendar(); Experience.translate(); Experience.paint();
+    status(); legend(); renderPanel(); ptsInfo(); ranking(); chartYears(); chartRatio(); chartCV(); chartCal(); if(D.peru) fireCalendar(); Experience.translate(); Experience.paint();
   }
 
   // ---------- boot ----------
