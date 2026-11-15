@@ -61,23 +61,28 @@ const TerritoryCard = (() => {
     const insideWord = /^Reserva/.test(cat) ? t.tc_inside_reserve : t.tc_inside_area;
     const value = x => !x || !finite(x.value) ? `<span class="tc-nodata">${esc(t.tc_nodata)}</span>` : `${fmt(x.value)} <small>${esc(t.tc_hotspots(x.value))}</small>`;
     const tag = x => { const s = stateOf(x); return `<span class="tc-tag ${s}">${esc(t["nx_" + s])}</span>`; };
-    let h = `<div class="tc"><h3>${esc(title)}</h3><div class="tc-sub">${esc([deps.join(", "), kind, period].filter(Boolean).join(" · "))}</div>`;
-    h += `<p class="tc-status ${state}"><span>${esc(t.tc_status)}:</span> ${esc(t["nx_" + state])}</p>`;
+    const pin = '<svg class="tc-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
+    const unit = (name, desc, x, on) => {
+      const s = stateOf(x), n = x && finite(x.value) ? x.value : null;
+      return `<section class="tc-unit${on ? " on" : ""}"><div class="tc-head">${pin}<div><b>${esc(name)}</b><p>${esc(desc)}</p></div></div>`
+        + `<div class="tc-row"><span>${esc(periodLong)}</span><span class="tc-tag ${s}">${esc(t["tc_badge_" + s])}</span></div>`
+        + `<div class="tc-big">${n == null ? `<span class="tc-nodata">${esc(t.tc_nodata)}</span>` : `${fmt(n)} <small>${esc(t.tc_hotspots(n))}</small>`}</div>`
+        + (n == null ? "" : `<p class="tc-text">${esc(t.tc_reading({ state: s, month: t.tc_months[mo - 1], median: x && finite(x.median) ? fmt(x.median) : null, medianN: x?.median, incomplete: x && !x.complete, estimated: x?.source < 2 }))}</p>`)
+        + `</section>`;
+    };
+    const periodLong = t.tc_period(t.tc_months[mo - 1], year);
+    let h = `<div class="tc"><h3>${esc(title)}</h3><div class="tc-sub">${esc([deps.join(", "), loc.kind === "buffer" ? cat : kind].filter(Boolean).join(" · "))}</div>`;
     if (loc.kind === "area" || loc.kind === "buffer") {
       const inside = loc.kind === "area" ? r : rec(`${loc.code}|area`), ring = loc.kind === "buffer" ? r : rec(`${loc.code}|buffer`);
-      const hasRing = Boolean(data[`${loc.code}|buffer`]);
-      h += `<div class="tc-pair"><div class="tc-box${loc.kind === "area" ? " on" : ""}"><span class="tc-k">${esc(insideWord)}</span><b>${value(inside)}</b>${inside && finite(inside.value) ? tag(inside) : ""}</div>`
-        + `<div class="tc-box ring${loc.kind === "buffer" ? " on" : ""}"><span class="tc-k">${esc(t.tc_buffer)}</span><b>${hasRing ? value(ring) : `<span class="tc-nodata">${esc(t.tc_nodata)}</span>`}</b>${hasRing && ring && finite(ring.value) ? tag(ring) : ""}</div></div>`;
-      h += `<p class="tc-note">${esc(t.tc_pair_note)}</p>`;
+      const blocks = [[insideWord, /^Reserva/.test(cat) ? t.tc_desc_reserve : t.tc_desc_area, inside, loc.kind === "area"]];
+      if (data[`${loc.code}|buffer`]) blocks.push([t.tc_buffer, t.tc_desc_buffer, ring, loc.kind === "buffer"]);
+      if (loc.kind === "buffer") blocks.reverse();
+      h += blocks.map(b => unit(...b)).join("");
     } else {
-      h += `<div class="tc-pair one"><div class="tc-box on"><span class="tc-k">${esc(t.tc_period_activity)}</span><b>${value(r)}</b>${r?.source < 2 && finite(r?.value) ? `<small class="tc-est">${esc(t.tc_estimated)}</small>` : ""}</div></div>`;
+      h += unit(loc.kind === "cell" ? t.tc_cell_title : loc.kind === "region" ? loc.name : t.fc_peru, loc.kind === "cell" ? t.tc_desc_cell : loc.kind === "region" ? t.tc_desc_region : t.tc_desc_country, r, true);
       if (loc.kind === "cell") { const a = overlap(loc); if (a) h += `<p class="tc-note">${esc(t.tc_overlap(`${a.properties.cat} ${a.properties.name}`))}</p>`; }
-      if (loc.kind === "region") h += `<p class="tc-note">${esc(t.nx_region_approx)}</p>`;
     }
-    h += `<p class="tc-text">${esc(t.tc_text({ state, period, value: r && finite(r.value) ? fmt(r.value) : null, n: r?.value, median: r && finite(r.median) ? fmt(r.median) : null,
-      where: loc.kind === "area" ? insideWord.toLowerCase() : loc.kind === "buffer" ? t.tc_where_buffer : loc.kind === "cell" ? t.tc_where_cell : loc.kind === "region" ? t.tc_where_region(loc.name) : t.tc_where_country,
-      estimated: r?.source < 2, incomplete: r && !r.complete }))}</p>`;
-    h += `<p class="tc-foot">${esc(t.tc_hotspot_def)}</p><button type="button" class="tc-history" id="tc-history">${esc(t.tc_history)}</button>`;
+    h += `<p class="tc-foot"><span aria-hidden="true">ⓘ</span> ${esc(t.tc_hotspot_def)}</p>`;
     // territory information, collapsed
     const info = [];
     if (loc.km2 != null && (loc.kind === "area" || loc.kind === "buffer")) info.push([t.tc_surface, `${fmt(loc.km2)} km²`]);
@@ -92,7 +97,6 @@ const TerritoryCard = (() => {
     h += `<details class="tc-info"><summary>${esc(t.tc_info)}</summary><dl>${info.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>`
       + `${com.length || peoples.length ? `<p class="tc-note">${esc(t.tc_relation_note)}</p>` : ""}</details></div>`;
     el.innerHTML = h;
-    $("tc-history").onclick = () => k.openHistory();
   }
   return { init, render };
 })();

@@ -187,7 +187,7 @@
     window.addEventListener('resize',()=>map.invalidateSize());let entered=false;window.addEventListener('orbita-enter',()=>{map.invalidateSize();if(!entered){map.fitBounds(L.geoJSON(D.regions).getBounds(),{paddingTopLeft:[30,120],paddingBottomRight:[30,50]});entered=true;}});
     let sectorMarker;window.addEventListener('orbita-sector',e=>{if(sectorMarker)map.removeLayer(sectorMarker);const d=e.detail;if(!d)return;sectorMarker=L.circleMarker([d.lat,d.lon],{radius:10,color:'#691724',fillColor:'#fff',fillOpacity:1,weight:4}).addTo(map).bindTooltip(T().nx_sector).on('click',()=>select(d.lat,d.lon,d.id));if(d.focus)map.flyTo([d.lat,d.lon],9);});
     let selectionOutline;
-    window.addEventListener('orbita-highlight',e=>{const loc=e.detail;if(selectionOutline)map.removeLayer(selectionOutline);const f=D.areaById[loc.id] || (loc.kind==='region'?D.regions.features.find(f=>f.properties.name===loc.name):null);if(f)selectionOutline=L.geoJSON(f,{interactive:false,style:{color:'#0b3d91',weight:4,fill:false}}).addTo(map);else if(loc.kind==='cell')selectionOutline=L.rectangle([[loc.lat-.125,loc.lon-.125],[loc.lat+.125,loc.lon+.125]],{interactive:false,color:'#111',weight:3,fill:false}).addTo(map);});
+    window.addEventListener('orbita-highlight',e=>{const loc=e.detail;if(selectionOutline)map.removeLayer(selectionOutline);const f=D.areaById[loc.id] || (loc.kind==='region'?D.regions.features.find(f=>f.properties.name===loc.name):null);if(f)selectionOutline=L.geoJSON(f,{interactive:false,style:{color:'#111111',weight:3.5,fill:false}}).addTo(map);else if(loc.kind==='cell')selectionOutline=L.rectangle([[loc.lat-.125,loc.lon-.125],[loc.lat+.125,loc.lon+.125]],{interactive:false,color:'#111',weight:3,fill:false}).addTo(map);});
     window.addEventListener('orbita-paint',e=>{
       const {control,month,year,layer}=e.detail,idx=control.months.indexOf(`${year}-${String(month).padStart(2,'0')}`),lookup=new Map(control.cells.map(c=>[`${c.lat.toFixed(3)}_${c.lon.toFixed(3)}`,c]));
       const LV=window.OrbitaLevels;
@@ -199,8 +199,8 @@
       const t=T(),cap=`<small>${t.months[month-1]} · ${layer==='historical'?t.ux_historical:year+' '+(layer==='observed'?t.ux_observed:t.ob_anomalies_h)}</small>`,miss=`<span class="lv-row"><i class="lv-sw lv-miss"></i>${t.lv_missing}</span>`;
       $('legend').dataset.mode=layer;
       $('legend').innerHTML=layer==='anomaly'
-        ?`<b>${t.ob_anomalies_h}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${DIV.join(',')})"></span><span class="legend-ticks"><span>−3.5</span><span>0</span><span>2</span><span>3.5+</span></span><small>${t.lv_anom_help}</small>${cap}${miss}`
-        :`<b>${t.lv_title}</b><div class="lv-list">${LV.colors.map((col,i)=>`<span class="lv-row"><i class="lv-sw" style="background:${col}"></i><span>${t[LV.keys[i]]}</span><em>${LV.ranges()[i]}</em></span>`).join('')}${miss}</div>${cap}<small class="legend-note">${t.x3_note}</small>`;
+        ?`<b>${t.ob_anomalies_h}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${DIV.join(',')})"></span><span class="legend-ticks"><span>−3.5</span><span>0</span><span>2</span><span>3.5+</span></span><small>${t.lv_anom_help}</small>${miss}`
+        :`<b>${t.lv_title}</b><div class="lv-list">${LV.colors.map((col,i)=>`<span class="lv-row"><i class="lv-sw" style="background:${col}"></i><span>${t[LV.keys[i]]}</span><em>${LV.ranges()[i]}</em></span>`).join('')}${miss}</div><small class="legend-note">${t.x3_note}</small>`;
     });
   }
   function paintCells() {
