@@ -160,7 +160,7 @@
   // ---------- map ----------
   let map, cellLayer, areaLayer, bufLayer, commLayer, baseLayer, selMarker;
   function initMap() {
-    map = L.map("leaflet", { preferCanvas: true, minZoom: 4, maxBounds: [[-22, -86], [3, -64]] }).setView([-9.3, -75.3], 5);
+    map = L.map("leaflet", { preferCanvas: true, zoomSnap: 0.25, minZoom: 4, maxBounds: [[-22, -86], [3, -64]] }).setView([-9.3, -75.3], 5);
     baseLayer = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12, attribution: "© OpenStreetMap contributors", opacity: .55 }).addTo(map);
     const regLayer = L.geoJSON(D.regions, { style: { color: "#898781", weight: .8, fill: false }, interactive: false }).addTo(map);
     map.fitBounds(regLayer.getBounds(), { padding: [10, 10] });
@@ -172,7 +172,7 @@
       cellLayer.addLayer(c.rect);
     });
     const style = kind => f => kind === "area" ? { color: "#006300", weight: 1.4, fillColor: "#008300", fillOpacity: .06 } : { color: "#006300", weight: 1, dashArray: "4 3", fill: false };
-    areaLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area") }, { style: style("area"), interactive: true, bubblingMouseEvents:false, onEachFeature:(f,l)=>{l.bindTooltip(f.properties.name);l.on('mouseover',()=>l.setStyle({weight:3}));l.on('mouseout',()=>l.setStyle({weight:1.4}));l.on('click',e=>{map.fitBounds(l.getBounds());select(e.latlng.lat,e.latlng.lng,f.properties.id);});} }).addTo(map);
+    areaLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "area" && !/^(RN16|RN18|RN13)/.test(f.properties.code)) }, { style: style("area"), interactive: true, bubblingMouseEvents:false, onEachFeature:(f,l)=>{l.bindTooltip(f.properties.name);l.on('mouseover',()=>l.setStyle({weight:3}));l.on('mouseout',()=>l.setStyle({weight:1.4}));l.on('click',e=>{map.fitBounds(l.getBounds());select(e.latlng.lat,e.latlng.lng,f.properties.id);});} }).addTo(map);
     bufLayer = L.geoJSON({ type: "FeatureCollection", features: D.areas.features.filter(f => f.properties.kind === "buffer") }, { style: style("buffer"), interactive: false }).addTo(map);
     commLayer = L.layerGroup(D.comm.map(c => L.circleMarker([c[0], c[1]], { radius: 2.6, color: "#fcfcfb", weight: .6, fillColor: "#6250d6", fillOpacity: .9, interactive: false })));
     map.on("click", e => select(e.latlng.lat, e.latlng.lng));
@@ -189,9 +189,9 @@
     window.addEventListener('orbita-paint',e=>{
       const {control,month,year,layer}=e.detail,idx=control.months.indexOf(`${year}-${String(month).padStart(2,'0')}`),lookup=new Map(control.cells.map(c=>[`${c.lat.toFixed(3)}_${c.lon.toFixed(3)}`,c]));
       D.cells.cells.forEach(c=>{const d=lookup.get(`${c.la.toFixed(3)}_${c.lo.toFixed(3)}`),v=layer==='historical'?d?.season[month-1]:layer==='observed'?d?.o[idx]:d?.z[idx];
-        const color=v==null?'#a9ada9':layer==='anomaly'?ramp(DIV,(Math.max(-3.5,Math.min(3.5,v))+3.5)/7):window.OrbitaPalette.activity(v);
+        const color=v==null?'#a9ada9':layer==='anomaly'?ramp(DIV,(Math.max(-3.5,Math.min(3.5,v))+3.5)/7):window.OrbitaPalette.activity(v,window.OrbitaPalette.cellMax);
         c.rect.setStyle({fillColor:color,fillOpacity:.8});});
-      $('legend').dataset.mode=layer;$('legend').innerHTML=`<b>${layer==='anomaly'?T().ob_anomalies_h:T().nx_fire_activity}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${(layer==='anomaly'?DIV:window.OrbitaPalette.colors).join(',')})"></span><span class="legend-ticks">${layer==='anomaly'?'<span>−3.5</span><span>0</span><span>2</span><span>3.5+</span>':`<span>0</span><span style="left:${100*Math.log1p(10)/Math.log1p(window.OrbitaPalette.max)}%">10</span><span style="left:${100*Math.log1p(1000)/Math.log1p(window.OrbitaPalette.max)}%">1k</span><span>${window.OrbitaPalette.max.toLocaleString(undefined,{maximumFractionDigits:1})}</span>`}</span><small>${T().months[month-1]} · ${layer==='historical'?T().ux_historical:year+' '+(layer==='observed'?T().ux_observed:T().ob_anomalies_h)} · ${T().nx_grey}</small>`;
+      $('legend').dataset.mode=layer;$('legend').innerHTML=`<b>${layer==='anomaly'?T().ob_anomalies_h:T().nx_fire_activity}</b><span class="visual-ramp" style="background:linear-gradient(90deg,${(layer==='anomaly'?DIV:window.OrbitaPalette.colors).join(',')})"></span><span class="legend-ticks">${layer==='anomaly'?'<span>−3.5</span><span>0</span><span>2</span><span>3.5+</span>':`<span>0</span><span style="left:${100*Math.log1p(10)/Math.log1p(window.OrbitaPalette.cellMax)}%">10</span><span style="left:${100*Math.log1p(100)/Math.log1p(window.OrbitaPalette.cellMax)}%">100</span><span>${Math.round(window.OrbitaPalette.cellMax).toLocaleString()}</span>`}</span><small>${T().months[month-1]} · ${layer==='historical'?T().ux_historical:year+' '+(layer==='observed'?T().ux_observed:T().ob_anomalies_h)} · ${T().nx_grey}</small><small class="legend-note">${layer==='anomaly'?T().x3_leg_anom+' · ':''}${T().x3_note}</small>`;
     });
   }
   function paintCells() {

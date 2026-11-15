@@ -23,3 +23,5 @@
 
 /* A single primary action; closing controls occupy their own layout space. */
 .sheet-toolbar{display:flex;justify-content:flex-end;min-height:26px;margin:-8px -8px 4px 0}.context-sheet .close-sheet{position:static;float:none;flex:none;margin:0}.context-actions{grid-template-columns:1fr;position:static;bottom:auto;margin:18px 0 0;padding:0;box-shadow:none}.context-actions button{align-items:center;padding:13px}.context-actions button small{display:none}.analysis-dialog .analysis-heading{padding-right:0;align-items:flex-start}.analysis-heading>div{min-width:0;flex:1}.analysis-dialog #collapse-analysis{position:static;top:auto;right:auto;flex:none;align-self:flex-start;max-width:none;margin:0}.analysis-dialog>.analysis-details{margin-top:18px}.analysis-scope select{max-width:230px!important}
+.legend small.legend-note{color:#7a2e1f;font-weight:600}
+.priority-mini{bottom:178px}

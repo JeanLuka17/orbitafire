@@ -17,6 +17,8 @@ for file in sorted({l['file'] for l in manifest['locations'] if l['kind']=='cell
                       'z':[r[fields['z']] for r in d['rows']]})
 national=json.loads((out/'observatory/national.json').read_text(encoding='utf-8'))['peru']
 activity_max=max(r[0] for r in national['rows'] if r[0] is not None)
-payload={'activity_max':activity_max,'months':d['months'],'cells':cells,'data_through':manifest['data_through']}
+# map colours use the cell scale (a 25 km cell has at most ~1,200 hotspots a month, not the national total)
+cell_max=max(v for c in cells for v in c['v'] if v is not None)
+payload={'activity_max':activity_max,'cell_max':cell_max,'months':d['months'],'cells':cells,'data_through':manifest['data_through']}
 (out/'control.json').write_text(json.dumps(payload,separators=(',',':'),ensure_ascii=False),encoding='utf-8')
 print(f'{len(cells)} cells, {len(d["months"])} monthly values; no fabricated daily records')
