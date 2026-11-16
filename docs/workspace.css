@@ -134,3 +134,16 @@
 .lp-dot.v{background:#ff1a1a}.lp-dot.m{background:#ff8a00}
 @media (max-width:700px){.layer-panel{top:auto;bottom:62px;right:10px;width:200px}.lp-body{max-height:48dvh}.workspace.has-selection .layer-panel{display:none}}
 .layer-panel{width:230px}.lp-body{padding:6px 14px 10px}
+/* how-to guide */
+.guide{max-width:860px;padding-top:44px}
+.guide h1{font-size:clamp(28px,4vw,40px);margin:0 0 10px}
+.guide-lead{font-size:17px;color:var(--ui-muted);margin:0 0 22px;line-height:1.5}
+.guide-steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.guide-steps li{background:#fff;border:1px solid var(--ui-line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5}
+.guide-steps b{font-size:15px}
+.guide-note{margin:18px 0;padding:12px 16px;border-left:3px solid var(--ui-accent);background:#fbf3ef;font-size:13.5px;line-height:1.5;border-radius:0 8px 8px 0}
+.guide-go{margin:4px 0 30px}
+.guide-method{max-width:none;margin:10px auto 60px;border-top:1px solid var(--ui-line);padding-top:14px}
+.guide-method>summary{cursor:pointer;font-weight:650;color:var(--ui-muted);max-width:860px;margin:0 auto}
+@media (max-width:700px){.guide-steps{grid-template-columns:1fr}.guide{padding-top:24px}}
+.guide-go{font-size:16px;padding:12px 28px}

@@ -51,9 +51,17 @@ const Experience = (()=>{
   analysis.prepend(document.querySelector('.analysis-close-bar'));{const cal=$('fire-calendar'),ctl=cal.querySelector('.calendar-controls');cal.insertBefore(document.querySelector('.analysis-scope'),ctl);cal.insertBefore(document.querySelector('.analysis-month'),ctl);}const prioritiesBox=make('details','priority-mini');prioritiesBox.innerHTML='<summary><span data-i18n="ux_attention"></span><span id="priority-count" class="priority-count"></span></summary><div id="priority-mini-list"></div>';mapSection.append(prioritiesBox);
   const archive=make('details','archive');archive.innerHTML='<summary data-i18n="ux_all_tables"></summary>';archive.append($('reserves'));workspace.append(archive);
   const history=make('section','history-view');history.id='history-view';history.hidden=true;history.innerHTML='<iframe id="history-frame" title="OrbitaFire Historical Explorer"></iframe>';main.append(history);
-  const about=make('section','about-view');about.id='about-view';about.hidden=true;about.append(document.querySelector('.hero'),document.querySelector('.status'),$('method'),$('about'));main.append(about);
+  const about=make('section','about-view');about.id='about-view';about.hidden=true;
+  // team request: this tab is a short how-to guide; the methodology stays available, collapsed, below it
+  const guide=make('div','guide wrap');guide.innerHTML='<h1 data-i18n="gd_h"></h1><p class="guide-lead" data-i18n="gd_lead"></p><ol class="guide-steps">'
+    +[1,2,3,4,5,6].map(i=>`<li><b data-i18n="gd_s${i}_t"></b><span data-i18n="gd_s${i}"></span></li>`).join('')
+    +'</ol><div class="guide-note"><b data-i18n="gd_note_t"></b><span data-i18n="gd_note"></span></div><button type="button" class="enter guide-go" id="guide-go" data-i18n="gd_go"></button>';
+  const methodBox=make('details','guide-method wrap');methodBox.innerHTML='<summary data-i18n="gd_method"></summary>';
+  methodBox.append(document.querySelector('.hero'),document.querySelector('.status'),$('method'),$('about-team'));
+  about.append(guide,methodBox);main.append(about);
   $('close-sheet').onclick=()=>{aside.hidden=true;workspace.classList.remove('has-selection');window.dispatchEvent(new Event('resize'));};
   $('enter').onclick=()=>show('control');$('geo-search').disabled=true;
+  document.addEventListener('click',e=>{if(e.target.id==='guide-go')show('control');});
   function show(next,push=true){if(analysis.open)closeAnalysis();if(!['landing','control','history','about'].includes(next))next='landing';if(push&&location.hash!=='#'+next)window.history.pushState({view:next},'', '#'+next);if(next!=='history'&&frameReady)$('history-frame').contentWindow.postMessage({type:'orbita-pause'},location.origin);view=next;document.body.dataset.view=next;landing.hidden=next!=='landing';workspace.hidden=next!=='control';history.hidden=next!=='history';about.hidden=next!=='about';document.querySelectorAll('.view-tab').forEach(b=>{b.classList.toggle('active',b.dataset.view===next);b.setAttribute('aria-selected',String(b.dataset.view===next));});
     if(next==='history'){const f=$('history-frame');if(!f.src)f.src='3d.html';else sync();}window.dispatchEvent(new Event('resize'));if(next==='control')requestAnimationFrame(()=>window.dispatchEvent(new Event('orbita-enter')));}
   function sync(){if(frameReady)$('history-frame').contentWindow.postMessage({type:'orbita-selection',lang:language,location:selected,month:+$('fc-month').value},location.origin);}
