@@ -53,9 +53,7 @@ const Experience = (()=>{
   const history=make('section','history-view');history.id='history-view';history.hidden=true;history.innerHTML='<iframe id="history-frame" title="OrbitaFire Historical Explorer"></iframe>';main.append(history);
   const about=make('section','about-view');about.id='about-view';about.hidden=true;
   // team request: this tab is a short how-to guide; the methodology stays available, collapsed, below it
-  const guide=make('div','guide wrap');guide.innerHTML='<h1 data-i18n="gd_h"></h1><p class="guide-lead" data-i18n="gd_lead"></p><h2 class="guide-h2" data-i18n="gd2_h"></h2><ol class="guide-steps">'
-    +[1,2,3,4,5,6].map(i=>`<li><b data-i18n="gd_s${i}_t"></b><span data-i18n="gd_s${i}"></span></li>`).join('')
-    +'</ol><h2 class="guide-h2" data-i18n="gd3_h"></h2><p class="guide-lead" data-i18n="gd3_lead"></p><ol class="guide-steps">'+[1,2,3,4,5,6].map(i=>`<li><b data-i18n="gd3_s${i}_t"></b><span data-i18n="gd3_s${i}"></span></li>`).join('')+'</ol><div class="guide-note"><b data-i18n="gd_note_t"></b><span data-i18n="gd_note"></span></div><button type="button" class="enter guide-go" id="guide-go" data-i18n="gd_go"></button>';
+  const guide=make('div','guide wrap');guide.id='guide';
   const methodBox=make('details','guide-method wrap');methodBox.innerHTML='<summary data-i18n="gd_method"></summary>';
   methodBox.append(document.querySelector('.hero'),document.querySelector('.status'),$('method'),$('about-team'));
   about.append(guide,methodBox);main.append(about);
@@ -149,7 +147,7 @@ const Experience = (()=>{
   function priorities(items){const el=$('priority-mini-list');el.innerHTML='';const relevant=items.filter(x=>x.r?.source>=2&&x.z>=2).sort((a,b)=>b.z-a.z).slice(0,4);
     $('priority-count').textContent=relevant.length||'–';if(!relevant.length){el.textContent=t().ux_neutral;return;}
     relevant.forEach(x=>{const b=make('button','attention-link'),name=document.createElement('strong'),note=document.createElement('span');name.textContent=x.loc.name;note.textContent=`${x.r.time} · ${t()[x.z>=3.5?'nx_exceptional':'nx_unusual']}`;b.append(name,note);b.onclick=()=>{$('map-year').value=x.r.time.slice(0,4);$('fc-month').value=+x.r.time.slice(5);ctx.select(x.loc.id,true);};el.append(b);});}
-  function translate(){language=document.documentElement.lang||'en';document.querySelectorAll('[data-i18n]').forEach(e=>{if(typeof t()[e.dataset.i18n]==='string')e.textContent=t()[e.dataset.i18n];});
+  function translate(){language=document.documentElement.lang||'en';if(typeof OrbitaGuide!=='undefined')OrbitaGuide.render(language);document.querySelectorAll('[data-i18n]').forEach(e=>{if(typeof t()[e.dataset.i18n]==='string')e.textContent=t()[e.dataset.i18n];});
     for(const [id,key,hint]of[['view-details','nx_details','ui_details_hint']]){const b=$(id);b.innerHTML='';const title=document.createElement('strong'),small=document.createElement('small');title.textContent=t()[key];small.textContent=t()[hint];b.append(title,small);}sync();}
   window.addEventListener('popstate',()=>show(location.hash.slice(1)||'landing',false));window.addEventListener('hashchange',()=>show(location.hash.slice(1)||'landing',false));
   show(location.hash.slice(1)||'landing',false);
