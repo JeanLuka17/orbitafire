@@ -58,7 +58,7 @@ const Experience = (()=>{
   methodBox.append(document.querySelector('.hero'),document.querySelector('.status'),$('method'),$('about-team'));
   about.append(guide,methodBox);main.append(about);
   $('close-sheet').onclick=()=>{aside.hidden=true;workspace.classList.remove('has-selection');window.dispatchEvent(new Event('resize'));};
-  $('enter').onclick=()=>show('control');$('geo-search').disabled=true;
+  $('enter').onclick=()=>{show('about');window.scrollTo(0,0);document.getElementById('about-view')?.scrollTo?.(0,0);};$('geo-search').disabled=true;
   document.addEventListener('click',e=>{if(e.target.id==='guide-go')show('control');});
   function show(next,push=true){if(analysis.open)closeAnalysis();if(!['landing','control','history','about'].includes(next))next='landing';if(push&&location.hash!=='#'+next)window.history.pushState({view:next},'', '#'+next);if(next!=='history'&&frameReady)$('history-frame').contentWindow.postMessage({type:'orbita-pause'},location.origin);view=next;document.body.dataset.view=next;landing.hidden=next!=='landing';workspace.hidden=next!=='control';history.hidden=next!=='history';about.hidden=next!=='about';document.querySelectorAll('.view-tab').forEach(b=>{b.classList.toggle('active',b.dataset.view===next);b.setAttribute('aria-selected',String(b.dataset.view===next));});
     if(next==='history'){const f=$('history-frame');if(!f.src)f.src='3d.html';else sync();}window.dispatchEvent(new Event('resize'));if(next==='control')requestAnimationFrame(()=>window.dispatchEvent(new Event('orbita-enter')));}

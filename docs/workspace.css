@@ -181,3 +181,4 @@ body[data-view=landing] .view-tab:hover{color:#fff}
 .guide-go{margin:28px 0 34px}
 @media (max-width:760px){.g-row{grid-template-columns:1fr}.guide-toc{grid-template-columns:1fr}.g-side{max-width:340px}}
 .guide-toc a{display:block!important;visibility:visible!important}
+.guide-method{display:none}
