@@ -133,3 +133,4 @@
 .lp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:middle;border:1px solid #fff;box-shadow:0 0 0 1px #0002}
 .lp-dot.v{background:#ff1a1a}.lp-dot.m{background:#ff8a00}
 @media (max-width:700px){.layer-panel{top:auto;bottom:62px;right:10px;width:200px}.lp-body{max-height:48dvh}.workspace.has-selection .layer-panel{display:none}}
+.layer-panel{width:230px}.lp-body{padding:6px 14px 10px}

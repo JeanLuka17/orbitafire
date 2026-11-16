@@ -212,36 +212,13 @@
   // ---------- layer panel (right) and recent hotspot points ----------
   function layerPanel() {
     const panel = document.createElement("aside"); panel.className = "layer-panel"; panel.id = "layer-panel";
-    panel.innerHTML = `<button type="button" class="lp-head" id="lp-toggle" aria-expanded="true"><span data-i18n="ly_title"></span><span class="lp-caret">▾</span></button><div class="lp-body" id="lp-body">
-      <h4 data-i18n="ly_points_h"></h4><label><input type="checkbox" id="lyr-points"> <span data-i18n="ly_points"></span></label>
-      <div class="seg lp-seg" id="pts-period"><button data-days="1" data-i18n="ly_1d"></button><button data-days="7" class="on" data-i18n="ly_7d"></button><button data-days="30" data-i18n="ly_30d"></button></div>
-      <small class="lp-info" id="pts-info"></small>
-      <h4 data-i18n="ly_cells_h"></h4><label><input type="checkbox" id="lyr-cells" checked> <span data-i18n="ly_cells"></span></label>
-      <h4 data-i18n="ly_terr_h"></h4><div id="lp-terr"></div>
-      <h4 data-i18n="ly_base_h"></h4><label><input type="radio" name="lp-base" value="sat" checked> <span data-i18n="ly_sat"></span></label><label><input type="radio" name="lp-base" value="osm"> <span data-i18n="ly_osm"></span></label><label><input type="radio" name="lp-base" value="none"> <span data-i18n="ly_none"></span></label></div>`;
+    // team request: the panel only holds the three territory layers
+    panel.innerHTML = `<button type="button" class="lp-head" id="lp-toggle" aria-expanded="true"><span data-i18n="ly_terr_h"></span><span class="lp-caret">▾</span></button><div class="lp-body" id="lp-body"><div id="lp-terr"></div></div>`;
     $("workspace").append(panel);
     ["lyr-areas", "lyr-buffers", "lyr-comm"].forEach(id => $("lp-terr").append($(id).closest("label")));
-    $("lp-terr").append($("map-scope").closest("label"));
     document.querySelector(".layer-options")?.classList.add("lp-moved");
     if (matchMedia("(max-width:700px)").matches) { panel.classList.add("closed"); $("lp-toggle").setAttribute("aria-expanded", "false"); }
     $("lp-toggle").onclick = () => { const c = panel.classList.toggle("closed"); $("lp-toggle").setAttribute("aria-expanded", String(!c)); };
-    $("lyr-cells").onchange = e => e.target.checked ? cellLayer.addTo(map) : map.removeLayer(cellLayer);
-    panel.querySelectorAll("input[name=lp-base]").forEach(r => r.onchange = () => {
-      S.base = r.value; [satLayer, baseLayer].forEach(l => map.removeLayer(l));
-      if (S.base === "sat") satLayer.addTo(map); else if (S.base === "osm") baseLayer.addTo(map);
-      $("lyr-base").checked = S.base === "osm"; Experience.paint(); });
-    map.createPane("pts").style.zIndex = 450;
-    const renderer = L.canvas({ pane: "pts" });
-    S.ptsDays = 7;
-    const draw = () => {
-      if (ptsLayer) map.removeLayer(ptsLayer);
-      if (!$("lyr-points").checked || !ptsData) { ptsInfo(); return; }
-      const pts = ptsData.points.filter(p => p[2] < S.ptsDays);
-      ptsLayer = L.layerGroup(pts.map(p => L.circleMarker([p[0], p[1]], { renderer, radius: p[3] ? 3 : 2.4, color: "#ffffff", weight: .5, fillColor: p[3] ? "#ff8a00" : "#ff1a1a", fillOpacity: .95, interactive: false }))).addTo(map);
-      ptsInfo();
-    };
-    $("lyr-points").onchange = () => { if (!ptsData) fetch("data/recent_points.json").then(r => r.json()).then(d => { ptsData = d; draw(); }); else draw(); };
-    panel.querySelectorAll("#pts-period button").forEach(b => b.onclick = () => { S.ptsDays = +b.dataset.days; panel.querySelectorAll("#pts-period button").forEach(x => x.classList.toggle("on", x === b)); draw(); });
     ptsInfo();
   }
   function ptsInfo() {
