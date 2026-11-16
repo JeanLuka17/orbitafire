@@ -14,7 +14,7 @@ const Experience = (()=>{
   const t=()=>I18N[document.documentElement.lang||language];
   const make=(tag,cls)=>{const e=document.createElement(tag);e.className=cls;return e;};
   const landing=make('section','welcome');landing.id='welcome';
-  landing.innerHTML='<div class="welcome-hero"><div class="welcome-copy"><p class="eyebrow" data-i18n="lp_eyebrow"></p><h1>OrbitaFire</h1><p class="welcome-tagline" data-i18n="lp_tagline"></p><p class="welcome-lead" data-i18n="lp_lead"></p><button id="enter" class="enter" data-i18n="ux_enter"></button><p class="welcome-source">NASA MODIS + VIIRS · 2000–2026</p><small data-i18n="ux_photo"></small></div><span class="welcome-scroll" aria-hidden="true">⌄</span></div>'
+  landing.innerHTML='<div class="welcome-hero"><div class="welcome-copy"><p class="eyebrow" data-i18n="lp_eyebrow"></p><h1>OrbitaFire</h1><p class="welcome-tagline" data-i18n="lp_tagline"></p><p class="welcome-lead" data-i18n="lp_lead"></p><div class="welcome-btns"><button id="enter" class="enter" data-i18n="lp_guide"></button><button id="enter-map" class="enter enter-alt" data-i18n="lp_map"></button></div><p class="welcome-source">NASA MODIS + VIIRS · 2000–2026</p><small data-i18n="ux_photo"></small></div><span class="welcome-scroll" aria-hidden="true">⌄</span></div>'
     +'<div class="welcome-more"><h2 data-i18n="lp_users_h"></h2><p class="welcome-users" data-i18n="lp_users"></p><div class="welcome-benefits">'
     +[1,2,3].map(i=>`<div><h3 data-i18n="lp_b${i}_t"></h3><p data-i18n="lp_b${i}"></p></div>`).join('')+'</div></div>';
   document.body.prepend(landing);
@@ -58,9 +58,15 @@ const Experience = (()=>{
   methodBox.append(document.querySelector('.hero'),document.querySelector('.status'),$('method'),$('about-team'));
   about.append(guide,methodBox);main.append(about);
   $('close-sheet').onclick=()=>{aside.hidden=true;workspace.classList.remove('has-selection');window.dispatchEvent(new Event('resize'));};
-  $('enter').onclick=()=>{show('about');window.scrollTo(0,0);document.getElementById('about-view')?.scrollTo?.(0,0);};$('geo-search').disabled=true;
+  $('enter').onclick=()=>{show('about');window.scrollTo(0,0);document.getElementById('about-view')?.scrollTo?.(0,0);};$('enter-map').onclick=()=>show('control');$('geo-search').disabled=true;
   document.addEventListener('click',e=>{if(e.target.id==='guide-go')show('control');});
-  function show(next,push=true){if(analysis.open)closeAnalysis();if(!['landing','control','history','about'].includes(next))next='landing';if(push&&location.hash!=='#'+next)window.history.pushState({view:next},'', '#'+next);if(next!=='history'&&frameReady)$('history-frame').contentWindow.postMessage({type:'orbita-pause'},location.origin);view=next;document.body.dataset.view=next;landing.hidden=next!=='landing';workspace.hidden=next!=='control';history.hidden=next!=='history';about.hidden=next!=='about';document.querySelectorAll('.view-tab').forEach(b=>{b.classList.toggle('active',b.dataset.view===next);b.setAttribute('aria-selected',String(b.dataset.view===next));});
+  let dataNoticeShown=false;
+  function dataNotice(){if(dataNoticeShown||!control?.data_through)return;dataNoticeShown=true;const T=t(),d=new Date(control.data_through+'T00:00:00Z');
+    const f=d.toLocaleDateString(language==='es'?'es-PE':'en-US',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});
+    const box=make('div','data-notice');box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+    box.innerHTML=`<div class="dn-card"><p class="dn-eyebrow">${T.dn_eyebrow}</p><h3>${T.dn_title(f)}</h3><p>${T.dn_body}</p><button type="button" class="dn-ok">${T.dn_ok}</button></div>`;
+    document.body.append(box);const close=()=>box.remove();box.querySelector('.dn-ok').onclick=close;box.onclick=e=>{if(e.target===box)close();};box.querySelector('.dn-ok').focus();}
+  function show(next,push=true){if(analysis.open)closeAnalysis();if(next==='control')setTimeout(dataNotice,400);if(!['landing','control','history','about'].includes(next))next='landing';if(push&&location.hash!=='#'+next)window.history.pushState({view:next},'', '#'+next);if(next!=='history'&&frameReady)$('history-frame').contentWindow.postMessage({type:'orbita-pause'},location.origin);view=next;document.body.dataset.view=next;landing.hidden=next!=='landing';workspace.hidden=next!=='control';history.hidden=next!=='history';about.hidden=next!=='about';document.querySelectorAll('.view-tab').forEach(b=>{b.classList.toggle('active',b.dataset.view===next);b.setAttribute('aria-selected',String(b.dataset.view===next));});
     if(next==='history'){const f=$('history-frame');if(!f.src)f.src='3d.html';else sync();}window.dispatchEvent(new Event('resize'));if(next==='control')requestAnimationFrame(()=>window.dispatchEvent(new Event('orbita-enter')));}
   function sync(){if(frameReady)$('history-frame').contentWindow.postMessage({type:'orbita-selection',lang:language,location:selected,month:+$('fc-month').value},location.origin);}
   window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='orbita-choose'&&ctx){const loc=ctx.locations.find(l=>l.id===e.data.id || (l.kind==='area'&&l.name===e.data.name));if(loc)ctx.select(loc.id,true);}if(e.origin===location.origin&&e.data?.type==='orbita-ready'){frameReady=true;sync();}});
