@@ -53,9 +53,9 @@ const Experience = (()=>{
   const history=make('section','history-view');history.id='history-view';history.hidden=true;history.innerHTML='<iframe id="history-frame" title="OrbitaFire Historical Explorer"></iframe>';main.append(history);
   const about=make('section','about-view');about.id='about-view';about.hidden=true;
   // team request: this tab is a short how-to guide; the methodology stays available, collapsed, below it
-  const guide=make('div','guide wrap');guide.innerHTML='<h1 data-i18n="gd_h"></h1><p class="guide-lead" data-i18n="gd_lead"></p><ol class="guide-steps">'
+  const guide=make('div','guide wrap');guide.innerHTML='<h1 data-i18n="gd_h"></h1><p class="guide-lead" data-i18n="gd_lead"></p><h2 class="guide-h2" data-i18n="gd2_h"></h2><ol class="guide-steps">'
     +[1,2,3,4,5,6].map(i=>`<li><b data-i18n="gd_s${i}_t"></b><span data-i18n="gd_s${i}"></span></li>`).join('')
-    +'</ol><div class="guide-note"><b data-i18n="gd_note_t"></b><span data-i18n="gd_note"></span></div><button type="button" class="enter guide-go" id="guide-go" data-i18n="gd_go"></button>';
+    +'</ol><h2 class="guide-h2" data-i18n="gd3_h"></h2><p class="guide-lead" data-i18n="gd3_lead"></p><ol class="guide-steps">'+[1,2,3,4,5,6].map(i=>`<li><b data-i18n="gd3_s${i}_t"></b><span data-i18n="gd3_s${i}"></span></li>`).join('')+'</ol><div class="guide-note"><b data-i18n="gd_note_t"></b><span data-i18n="gd_note"></span></div><button type="button" class="enter guide-go" id="guide-go" data-i18n="gd_go"></button>';
   const methodBox=make('details','guide-method wrap');methodBox.innerHTML='<summary data-i18n="gd_method"></summary>';
   methodBox.append(document.querySelector('.hero'),document.querySelector('.status'),$('method'),$('about-team'));
   about.append(guide,methodBox);main.append(about);

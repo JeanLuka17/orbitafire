@@ -147,3 +147,12 @@
 .guide-method>summary{cursor:pointer;font-weight:650;color:var(--ui-muted);max-width:860px;margin:0 auto}
 @media (max-width:700px){.guide-steps{grid-template-columns:1fr}.guide{padding-top:24px}}
 .guide-go{font-size:16px;padding:12px 28px}
+.guide-h2{font-size:22px;margin:30px 0 12px}
+.guide-steps li span{color:#3c4a42}
+/* header stays visible on the landing page */
+
+
+/* header tabs also on the landing page */
+body[data-view=landing] .top{background:#06110d99;backdrop-filter:blur(6px)}
+body[data-view=landing] .view-tab{display:inline-block;color:#f3f1ea}
+body[data-view=landing] .view-tab:hover{color:#fff}
